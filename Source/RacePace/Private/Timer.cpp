@@ -49,7 +49,7 @@ void ATimer::Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		if (ActiveLaps.Contains(Racecar))
 		{
 			Racecar->LapTimingComponent->EndLap();
-			ActiveLaps.Remove(Racecar);
+			Racecar->LapTimingComponent->BeginLap();
 		}
 		else
 		{

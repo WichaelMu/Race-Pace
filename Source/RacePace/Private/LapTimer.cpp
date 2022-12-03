@@ -81,7 +81,11 @@ void ULapTimer::EndLap()
 
 	if (PlayerController)
 	{
-		PlayerController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime, this);
+		if (LapTimes.Num() > 1)
+		{
+			PlayerController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime, this);
+		}
+
 		PlayerController->SetLastLapTime(GetTime(ElapsedLapTime));
 
 		if (ElapsedLapTime < BestLapTime)
