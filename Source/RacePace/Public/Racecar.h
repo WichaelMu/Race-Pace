@@ -14,6 +14,7 @@ class UWheeledVehicleMovementComponent4W;
 class UCameraComponent;
 
 class ULapTimer;
+class UPersonalisedColours;
 
 class UDashboard;
 
@@ -38,6 +39,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 		ULapTimer* LapTimingComponent;
+
+	UPROPERTY(VisibleAnywhere)
+		UPersonalisedColours* PersonalisedColourComponent;
 
 private:
 

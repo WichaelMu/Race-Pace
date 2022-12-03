@@ -18,6 +18,7 @@
 #include "Engine/EngineTypes.h"
 
 #include "LapTimer.h"
+#include "PersonalisedColours.h"
 
 #include "Dashboard.h"
 
@@ -31,6 +32,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	PersonalisedColourComponent = CreateDefaultSubobject<UPersonalisedColours>(TEXT("Personalised Colours"));
 
 	SpringArm->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	SpringArm->SetupAttachment(RootComponent);
