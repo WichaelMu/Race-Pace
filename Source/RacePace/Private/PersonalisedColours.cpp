@@ -21,7 +21,7 @@ UPersonalisedColours::UPersonalisedColours()
 	EmissiveIntensity = 1.f;
 }
 
-
+#if WITH_EDITOR
 void UPersonalisedColours::PostEditChangeProperty(FPropertyChangedEvent& PropertyThatChanged)
 {
 	Super::PostEditChangeProperty(PropertyThatChanged);
@@ -34,6 +34,7 @@ void UPersonalisedColours::PostEditChangeProperty(FPropertyChangedEvent& Propert
 		ChangeColourPredefined();
 	}
 }
+#endif
 
 
 void UPersonalisedColours::ChangeColourPredefined()

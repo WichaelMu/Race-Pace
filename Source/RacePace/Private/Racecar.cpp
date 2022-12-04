@@ -22,9 +22,11 @@
 #include "DashboardHUD.h"
 #include "PersonalisedColours.h"
 
-#include "Dashboard.h"
+#define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && UE_BUILD_DEVELOPMENT && WITH_EDITOR
 
-#define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && UE_BUILD_DEVELOPMENT
+#define ADD_FORWARD_GEAR(Engine, Gear, InRatio) \
+Engine->TransmissionSetup.ForwardGears[Gear].Ratio = InRatio; \
+
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
@@ -42,7 +44,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/SportsCarPack/Skeletons/SK_SportsCar"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/Ferzor/Ferzor"));
 	if (DefaultChassis.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(DefaultChassis.Object);
@@ -52,7 +54,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 		E("Failed to find DefaultChassis")
 	}
 
-	static ConstructorHelpers::FClassFinder<UVehicleAnimInstance> DefaultAnim(TEXT("/Game/SportsCarPack/Blueprints/SportsCar/AB_SportsCar"));
+	static ConstructorHelpers::FClassFinder<UVehicleAnimInstance> DefaultAnim(TEXT("/Game/Ferzor/AB_Ferzor"));
 	if (DefaultAnim.Succeeded())
 	{
 		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
@@ -74,15 +76,15 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->bReverseAsBrake = false;
 	Engine->WheelSetups.Empty();
 	Engine->WheelSetups.SetNum(4);
-	Engine->WheelSetups[0].BoneName = FName(TEXT("Wheel_Front_Left"));
-	Engine->WheelSetups[1].BoneName = FName(TEXT("Wheel_Front_Right"));
-	Engine->WheelSetups[2].BoneName = FName(TEXT("Wheel_Rear_Left"));
-	Engine->WheelSetups[3].BoneName = FName(TEXT("Wheel_Rear_Right"));
+	Engine->WheelSetups[0].BoneName = FName(TEXT("FL"));
+	Engine->WheelSetups[1].BoneName = FName(TEXT("FR"));
+	Engine->WheelSetups[2].BoneName = FName(TEXT("RL"));
+	Engine->WheelSetups[3].BoneName = FName(TEXT("RR"));
 	Engine->WheelSetups[2].bDisableSteering = true;
 	Engine->WheelSetups[3].bDisableSteering = true;
 
-	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultFront(TEXT("/Game/SportsCarPack/Blueprints/SportsCar/BP_SC_Wheel_Front"));
-	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultRear(TEXT("/Game/SportsCarPack/Blueprints/SportsCar/BP_SC_Wheel_Rear"));
+	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultFront(TEXT("/Game/Ferzor/BP_FZ_Front"));
+	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultRear(TEXT("/Game/Ferzor/BP_FZ_Rear"));
 	if (DefaultFront.Succeeded())
 	{
 		Engine->WheelSetups[0].WheelClass = DefaultFront.Class;
@@ -98,8 +100,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->ChassisWidth = 130.f;
 	Engine->ChassisHeight = 30.f;
 
-	Engine->EngineSetup.MaxRPM = 15000.f;
-	Engine->MaxEngineRPM = 15000.f;
+	Engine->EngineSetup.MaxRPM = 12000.f;
+	Engine->MaxEngineRPM = 12000.f;
 
 	Engine->DifferentialSetup.DifferentialType = EVehicleDifferential4W::LimitedSlip_RearDrive;
 
@@ -107,6 +109,22 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->TransmissionSetup.GearSwitchTime = .1f;
 	Engine->TransmissionSetup.GearAutoBoxLatency = 1.f;
 	Engine->TransmissionSetup.ClutchStrength = 20.f;
+	Engine->TransmissionSetup.FinalRatio = 1.f;
+	Engine->TransmissionSetup.ReverseGearRatio = -23.f;
+	Engine->TransmissionSetup.ClutchStrength = 560.f;
+
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.f, 100.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(4200.f, 300.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(7000.f, 490.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(11500.f, 415.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(12000.f, 135.f);
+	Engine->EngineSetup.DampingRateZeroThrottleClutchEngaged = .44f;
+
+	Engine->SteeringCurve.GetRichCurve()->Reset();
+	Engine->SteeringCurve.GetRichCurve()->AddKey(0.f, 1.f);
+	Engine->SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
+	Engine->SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
 
 	BaseMass = 750.f;
 	Engine->Mass = BaseMass;

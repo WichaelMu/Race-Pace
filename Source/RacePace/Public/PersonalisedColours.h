@@ -17,8 +17,9 @@ public:
 	UPersonalisedColours();
 
 protected:
-
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyThatChanged);
+#endif
 
 protected:
 
