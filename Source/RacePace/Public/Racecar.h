@@ -80,13 +80,11 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		USpringArmComponent* SpringArm;
-
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		UCameraComponent* Camera;
 
 	UPROPERTY(EditAnywhere, Category = Camera)
 		float MouseMoveSensitivity;
-
 	UPROPERTY(EditAnywhere, Category = Camera)
 		float ScrollZoomSensitivity;
 

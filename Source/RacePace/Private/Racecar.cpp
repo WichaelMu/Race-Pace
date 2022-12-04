@@ -161,7 +161,22 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ARacecar::Throttle(float Throw)
 {
-	GetVehicleMovementComponent()->SetThrottleInput(Throw);
+	GetVehicleMovementComponent()->SetHandbrakeInput(false);
+
+	if (Throw > 0)
+	{
+		GetVehicleMovementComponent()->SetThrottleInput(Throw);
+	}
+	else if (GetSpeed() == 0 && GetCurrentGear() != 0)
+	{
+		// Idle Revs.
+		GetVehicleMovementComponent()->SetHandbrakeInput(true);
+		GetVehicleMovementComponent()->SetThrottleInput(1.f);
+	}
+	else
+	{
+		GetVehicleMovementComponent()->SetThrottleInput(0.f);
+	}
 }
 
 void ARacecar::Brake(float Throw)
@@ -221,7 +236,15 @@ void ARacecar::AdjustZoom(float Throw)
 
 void ARacecar::ShiftDown()
 {
-	GetVehicleMovement()->SetTargetGear(ClampGear(GetCurrentGear() - 1), true);
+	int32 CurrentGear = GetCurrentGear();
+
+	// Prevent engaging Reverse when still going forward at Speed. (Stops instantly stopping because of Reverse)
+	if (CurrentGear == 0 && GetSpeed() > 15)
+	{
+		return;
+	}
+
+	GetVehicleMovement()->SetTargetGear(ClampGear(CurrentGear - 1), true);
 }
 
 void ARacecar::ShiftUp()
