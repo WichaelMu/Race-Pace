@@ -4,6 +4,7 @@
 #include "LapTimer.h"
 #include "RacePaceHelpers.h"
 #include "RacePacePlayer.h"
+#include "RacecarUIController.h"
 
 // Sets default values for this component's properties
 ULapTimer::ULapTimer()
@@ -17,22 +18,6 @@ ULapTimer::ULapTimer()
 #endif
 
 	BestLapTime = INT_MAX;
-}
-
-
-void ULapTimer::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-
-	if (APawn* Racecar = Cast<APawn>(GetOwner()))
-	{
-		if (ARacePacePlayer* Player = Cast<ARacePacePlayer>(Racecar->GetController()))
-		{
-			PlayerController = Player;
-		}
-	}
 }
 
 
@@ -51,10 +36,10 @@ void ULapTimer::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 		ElapsedLapTime = GetCurrentLapTime();
 #endif
 
-		if (PlayerController)
+		if (RacecarUIController)
 		{
 			const FString LapTime = GetTime(ElapsedLapTime);
-			PlayerController->SetLapTime(LapTime);
+			RacecarUIController->SetLapTime(LapTime);
 		}
 	}
 	else
@@ -79,20 +64,20 @@ void ULapTimer::EndLap()
 	bIsCurrentlyOnHotlap = false;
 	LapTimes.Add(ElapsedLapTime);
 
-	if (PlayerController)
+	if (RacecarUIController)
 	{
 		if (LapTimes.Num() > 1)
 		{
-			PlayerController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime, this);
+			RacecarUIController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime, this);
 		}
 
-		PlayerController->SetLastLapTime(GetTime(ElapsedLapTime));
+		RacecarUIController->SetLastLapTime(GetTime(ElapsedLapTime));
 
 		if (ElapsedLapTime < BestLapTime)
 		{
 			BestLapTime = ElapsedLapTime;
 			const FString BestTime = GetTime(BestLapTime);
-			PlayerController->SetBestLapTime(BestTime);
+			RacecarUIController->SetBestLapTime(BestTime);
 		}
 	}
 

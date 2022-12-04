@@ -13,7 +13,9 @@ class USpringArmComponent;
 class UWheeledVehicleMovementComponent4W;
 class UCameraComponent;
 
+class URacecarUIController;
 class ULapTimer;
+class UDashboardHUD;
 class UPersonalisedColours;
 
 class UDashboard;
@@ -39,9 +41,18 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 		ULapTimer* LapTimingComponent;
+	UPROPERTY(VisibleAnywhere)
+		UDashboardHUD* DashboardHUDComponent;
 
 	UPROPERTY(VisibleAnywhere)
 		UPersonalisedColours* PersonalisedColourComponent;
+
+	UFUNCTION(BlueprintCallable, Category = Dashboard)
+		int32 GetRPM() const;
+	UFUNCTION(BlueprintCallable, Category = Dashboard)
+		int32 GetSpeed() const;
+	UFUNCTION(BlueprintCallable, Category = Dashboard)
+		int32 GetCurrentGear() const;
 
 private:
 
@@ -60,15 +71,6 @@ private:
 
 	void ShiftDown();
 	void ShiftUp();
-
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetSpeed() const;
-
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetRPM() const;
-
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetCurrentGear() const;
 
 
 private:
@@ -92,6 +94,10 @@ private:
 		bool bAcceptRollCorrection;
 
 	float BaseMass;
+
+	URacecarUIController* RacecarUIController;
+
+private:
 
 	int32 ClampGear(const int32& Gear) const;
 };

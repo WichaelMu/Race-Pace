@@ -3,27 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
-
+#include "IRacecarUI.h"
 
 #include "LapTimer.generated.h"
 
 #define USE_DELTATIMING 0
 
-class ARacePacePlayer;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RACEPACE_API ULapTimer : public UActorComponent
+class RACEPACE_API ULapTimer : public UIRacecarUI
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
 	ULapTimer();
-
-protected:
-
-	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
@@ -56,7 +50,4 @@ private:
 #if !USE_DELTATIMING
 	double StartRawTime;
 #endif
-
-
-	ARacePacePlayer* PlayerController;
 };

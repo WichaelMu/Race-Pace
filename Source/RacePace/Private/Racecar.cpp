@@ -17,10 +17,14 @@
 #include "TimerManager.h"
 #include "Engine/EngineTypes.h"
 
+#include "RacecarUIController.h"
 #include "LapTimer.h"
+#include "DashboardHUD.h"
 #include "PersonalisedColours.h"
 
 #include "Dashboard.h"
+
+#define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && UE_BUILD_DEVELOPMENT
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
@@ -37,11 +41,6 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	SpringArm->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-
-	if (UPrimitiveComponent* CollisionEvents = Cast<UPrimitiveComponent>(GetMesh()))
-	{
-		CollisionEvents->SetGenerateOverlapEvents(false);
-	}
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/SportsCarPack/Skeletons/SK_SportsCar"));
 	if (DefaultChassis.Succeeded())
@@ -112,7 +111,15 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	BaseMass = 750.f;
 	Engine->Mass = BaseMass;
 
+	RacecarUIController = CreateDefaultSubobject<URacecarUIController>("Racecar UI Controller");
+
 	LapTimingComponent = CreateDefaultSubobject<ULapTimer>("Lap Timing Component");
+	DashboardHUDComponent = CreateDefaultSubobject<UDashboardHUD>("Dashboard HUD Component");
+
+	LapTimingComponent->RacecarUIController = RacecarUIController;
+	LapTimingComponent->Racecar = this;
+	DashboardHUDComponent->RacecarUIController = RacecarUIController;
+	DashboardHUDComponent->Racecar = this;
 }
 
 
@@ -208,7 +215,7 @@ int32 ARacecar::GetSpeed() const
 {
 	const float Speed = Engine->GetForwardSpeed() * .036f;
 
-#if UE_BUILD_DEVELOPMENT
+#if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::White, FString::FromInt(Speed));
@@ -222,7 +229,7 @@ int32 ARacecar::GetSpeed() const
 int32 ARacecar::GetRPM() const
 {
 	const int32 RPM = FMath::RoundToInt(Engine->GetEngineRotationSpeed());
-#if UE_BUILD_DEVELOPMENT
+#if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::FromInt(RPM));
@@ -235,7 +242,7 @@ int32 ARacecar::GetRPM() const
 int32 ARacecar::GetCurrentGear() const
 {
 	const int32 Gear = GetVehicleMovement()->GetCurrentGear();
-#if UE_BUILD_DEVELOPMENT
+#if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(0, 0.f, FColor::Blue, FString::FromInt(Gear));
