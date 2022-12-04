@@ -23,7 +23,7 @@ protected:
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category="Colour Personalisation")
+	UPROPERTY(EditAnywhere, Category="Colour Personalisation", AdvancedDisplay)
 		UMaterialInstance* ParentMaterial;
 
 	UPROPERTY(EditAnywhere, Category="Colour Personalisation")
