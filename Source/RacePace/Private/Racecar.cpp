@@ -29,6 +29,8 @@
 #define ADD_FORWARD_GEAR(Engine, Gear, InRatio) \
 Engine->TransmissionSetup.ForwardGears[Gear].Ratio = InRatio; \
 
+#define ENABLE_IDLE_REVS 0
+
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
@@ -163,6 +165,7 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ARacecar::Throttle(float Throw)
 {
+#if ENABLE_IDLE_REVS
 	GetVehicleMovementComponent()->SetHandbrakeInput(false);
 
 	if (Throw > 0)
@@ -179,6 +182,9 @@ void ARacecar::Throttle(float Throw)
 	{
 		GetVehicleMovementComponent()->SetThrottleInput(0.f);
 	}
+#else
+	GetVehicleMovementComponent()->SetThrottleInput(Throw);
+#endif
 }
 
 void ARacecar::Brake(float Throw)
