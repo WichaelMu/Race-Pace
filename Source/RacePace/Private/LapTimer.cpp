@@ -30,11 +30,7 @@ void ULapTimer::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 	if (bIsCurrentlyOnHotlap)
 	{
-#if USE_DELTATIMING
 		ElapsedLapTime += DeltaTime;
-#else
-		ElapsedLapTime = GetCurrentLapTime();
-#endif
 
 		if (RacecarUIController)
 		{
@@ -62,6 +58,7 @@ void ULapTimer::BeginLap()
 void ULapTimer::EndLap()
 {
 	bIsCurrentlyOnHotlap = false;
+	ElapsedLapTime = GetCurrentLapTime();
 	LapTimes.Add(ElapsedLapTime);
 
 	if (RacecarUIController)
