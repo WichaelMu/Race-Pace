@@ -28,22 +28,9 @@ ATimer::ATimer()
 	RootComponent = Collider;
 }
 
-// Called when the game starts or when spawned
-void ATimer::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void ATimer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
 
 void ATimer::Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	OnEntered.Broadcast(OtherActor);
-
 	if (ARacecar* Racecar = Cast<ARacecar>(OtherActor))
 	{
 		if (ActiveLaps.Contains(Racecar))

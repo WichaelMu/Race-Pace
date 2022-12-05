@@ -22,6 +22,8 @@
 #include "DashboardHUD.h"
 #include "PersonalisedColours.h"
 
+#include "RacePacePlayer.h"
+
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && UE_BUILD_DEVELOPMENT && WITH_EDITOR
 
 #define ADD_FORWARD_GEAR(Engine, Gear, InRatio) \
@@ -296,6 +298,19 @@ int32 ARacecar::GetCurrentGear() const
 #endif
 
 	return Gear;
+}
+
+ARacePacePlayer* ARacecar::GetRacepacePlayerController()
+{
+	if (!RacepacePlayer)
+	{
+		if (ARacePacePlayer* RacepaceController = Cast<ARacePacePlayer>(GetController()))
+		{
+			RacepacePlayer = RacepaceController;
+		}
+	}
+
+	return RacepacePlayer;
 }
 
 int32 ARacecar::ClampGear(const int32& Gear) const

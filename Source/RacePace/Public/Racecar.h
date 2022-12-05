@@ -48,11 +48,14 @@ public:
 		UPersonalisedColours* PersonalisedColourComponent;
 
 	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetRPM() const;
+		FORCEINLINE int32 GetRPM() const;
 	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetSpeed() const;
+		FORCEINLINE int32 GetSpeed() const;
 	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		int32 GetCurrentGear() const;
+		FORCEINLINE int32 GetCurrentGear() const;
+
+	UFUNCTION(BlueprintCallable)
+		ARacePacePlayer* GetRacepacePlayerController();
 
 private:
 
@@ -94,6 +97,7 @@ private:
 	float BaseMass;
 
 	URacecarUIController* RacecarUIController;
+	ARacePacePlayer* RacepacePlayer;
 
 private:
 

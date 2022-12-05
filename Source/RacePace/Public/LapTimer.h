@@ -28,19 +28,16 @@ public:
 	void BeginLap();
 	void EndLap();
 
-	float GetLastLapTime() const;
-	void ClearLapTimes();
-
-	UPROPERTY(VisibleAnywhere, Category="Lap Timer")
-		TArray<float> LapTimes;
-
 	UPROPERTY(VisibleAnywhere, Category="Lap Timer")
 		bool bIsCurrentlyOnHotlap;
 
 	static void ParseTime(const float& RawTime, int32& Minutes, int32& Seconds, int32& Milliseconds);
 
 	float GetCurrentLapTime() const;
-	FString GetTime(const float& InTime) const;
+
+public:
+
+	static FString GetTime(const float& InTime);
 
 private:
 

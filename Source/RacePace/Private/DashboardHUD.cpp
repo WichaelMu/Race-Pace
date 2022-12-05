@@ -17,14 +17,6 @@ UDashboardHUD::UDashboardHUD()
 	// ...
 }
 
-void UDashboardHUD::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-
-}
-
 
 // Called every frame
 void UDashboardHUD::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

@@ -27,4 +27,17 @@ protected:
 
 	virtual void BeginPlay() override;
 
+
+public:
+
+	void AddLapTime(const float& NewLapTime);
+	FORCEINLINE TArray<float> GetLapTimes() const;
+	float GetLastLapTime() const;
+	void ClearLapTimes();
+
+private:
+
+	UPROPERTY(VisibleAnywhere, Category="Lap Records")
+		TArray<float> LapTimes;
+
 };

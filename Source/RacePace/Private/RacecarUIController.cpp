@@ -110,7 +110,7 @@ void URacecarUIController::SetLastLapTime(const FString& InLastLapTime)
 	}
 }
 
-void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const float& BestTime, const ULapTimer* LapTimingComponent)
+void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const float& BestTime)
 {
 	if (LapDeltaText)
 	{
@@ -122,7 +122,7 @@ void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const fl
 		Result += bIsBehind
 			? FString("+")
 			: FString("-");
-		Result += LapTimingComponent->GetTime(FMath::Abs(Delta));
+		Result += ULapTimer::GetTime(FMath::Abs(Delta));
 
 		LapDeltaText->SetText(FText::FromString(Result));
 

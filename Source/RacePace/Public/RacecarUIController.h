@@ -19,7 +19,6 @@ UTextBlock* VarName;\
 class ARacePacePlayer;
 class ARacecar;
 
-class ULapTimer;
 class UCanvasPanelSlot;
 
 
@@ -49,7 +48,7 @@ public:
 	void SetLapTime(const FString& InTime);
 	void SetBestLapTime(const FString& InBestTime);
 	void SetLastLapTime(const FString& InLastLapTime);
-	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime, const ULapTimer* LapTimingComponent);
+	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime);
 
 	// Dashboard Functions.
 	void SetSpeed(const int32& InKMPH);

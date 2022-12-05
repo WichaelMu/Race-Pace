@@ -2,6 +2,7 @@
 
 
 #include "LapTimer.h"
+#include "Racecar.h"
 #include "RacePaceHelpers.h"
 #include "RacePacePlayer.h"
 #include "RacecarUIController.h"
@@ -59,13 +60,17 @@ void ULapTimer::EndLap()
 {
 	bIsCurrentlyOnHotlap = false;
 	ElapsedLapTime = GetCurrentLapTime();
-	LapTimes.Add(ElapsedLapTime);
 
 	if (RacecarUIController)
 	{
-		if (LapTimes.Num() > 1)
+		if (ARacePacePlayer* Player = Racecar->GetRacepacePlayerController())
 		{
-			RacecarUIController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime, this);
+			Player->AddLapTime(ElapsedLapTime);
+
+			if (Player->GetLapTimes().Num() > 1)
+			{
+				RacecarUIController->CompareLapToBestDeltas(ElapsedLapTime, BestLapTime);
+			}
 		}
 
 		RacecarUIController->SetLastLapTime(GetTime(ElapsedLapTime));
@@ -84,6 +89,16 @@ void ULapTimer::EndLap()
 }
 
 
+float ULapTimer::GetCurrentLapTime() const
+{
+#if !USE_DELTATIMING
+	return (float)(FPlatformTime::Seconds() - StartRawTime);
+#endif
+
+	return ElapsedLapTime;
+}
+
+
 void ULapTimer::ParseTime(const float& RawTime, int32& Minutes, int32& Seconds, int32& Milliseconds)
 {
 	Seconds = (int)RawTime;
@@ -95,36 +110,11 @@ void ULapTimer::ParseTime(const float& RawTime, int32& Minutes, int32& Seconds, 
 	Seconds %= 60;
 }
 
-float ULapTimer::GetCurrentLapTime() const
-{
-#if !USE_DELTATIMING
-	return (float)(FPlatformTime::Seconds() - StartRawTime);
-#endif
 
-	return ElapsedLapTime;
-}
-
-FString ULapTimer::GetTime(const float& InTime) const
+FString ULapTimer::GetTime(const float& InTime)
 {
 	int32 Minutes, Seconds, Milliseconds;
 	ParseTime(InTime, Minutes, Seconds, Milliseconds);
 
 	return FString::Printf(TEXT("%i:%02i.%.3i"), Minutes, Seconds, Milliseconds);
-}
-
-
-float ULapTimer::GetLastLapTime() const
-{
-	if (LapTimes.Num() > 0)
-	{
-		return LapTimes[LapTimes.Num() - 1];
-	}
-
-	return 0.f;
-}
-
-
-void ULapTimer::ClearLapTimes()
-{
-	LapTimes.Empty();
 }

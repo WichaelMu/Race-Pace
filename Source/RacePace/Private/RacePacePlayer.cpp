@@ -21,3 +21,30 @@ void ARacePacePlayer::BeginPlay()
 	// ...
 
 }
+
+void ARacePacePlayer::AddLapTime(const float& NewLapTime)
+{
+	LapTimes.Add(NewLapTime);
+}
+
+TArray<float> ARacePacePlayer::GetLapTimes() const
+{
+	return LapTimes;
+}
+
+float ARacePacePlayer::GetLastLapTime() const
+{
+	if (LapTimes.Num() > 0)
+	{
+		return LapTimes[LapTimes.Num() - 1];
+	}
+
+	return 0.f;
+}
+
+
+void ARacePacePlayer::ClearLapTimes()
+{
+	LapTimes.Empty();
+}
+
