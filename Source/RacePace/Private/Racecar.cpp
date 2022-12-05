@@ -182,6 +182,11 @@ void ARacecar::Throttle(float Throw)
 void ARacecar::Brake(float Throw)
 {
 	GetVehicleMovementComponent()->SetBrakeInput(Throw);
+
+	if (PersonalisedColourComponent)
+	{
+		PersonalisedColourComponent->ActivateColour(Throw != 0.f, 0);
+	}
 }
 
 void ARacecar::Steer(float Throw)

@@ -4,6 +4,7 @@
 #include "PersonalisedColours.h"
 #include "RacePaceHelpers.h"
 
+#include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Racecar.h"
 
@@ -17,11 +18,21 @@ UPersonalisedColours::UPersonalisedColours()
 
 	// ...
 
-	PersonalisedColour = FLinearColor(1.f, 0.494118f, 0.f);
-	EmissiveIntensity = 1.f;
+	PersonalisedColours.SetNum(1);
 }
 
 #if WITH_EDITOR
+void UPersonalisedColours::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ...
+
+	ChangeColourPredefined();
+	AssignActivateColourDefaults();
+}
+
+
 void UPersonalisedColours::PostEditChangeProperty(FPropertyChangedEvent& PropertyThatChanged)
 {
 	Super::PostEditChangeProperty(PropertyThatChanged);
@@ -39,35 +50,106 @@ void UPersonalisedColours::PostEditChangeProperty(FPropertyChangedEvent& Propert
 
 void UPersonalisedColours::ChangeColourPredefined()
 {
-	ChangeColour(PersonalisedColour, EmissiveIntensity);
+	ChangeColour(PersonalisedColours);
 }
 
 
-void UPersonalisedColours::ChangeColour(const FLinearColor& InColour, const float& Intensity)
+void UPersonalisedColours::ChangeColour(const TArray<FPersonalisedColourGroup>& ColourCollection)
 {
-	if (AActor* Owner = GetOwner())
+	if (USkeletalMeshComponent* Mesh = GetMesh())
 	{
-		if (ARacecar* Racecar = Cast<ARacecar>(Owner))
+		for (int32 ColourGroup = 0; ColourGroup < ColourCollection.Num(); ++ColourGroup)
 		{
-			if (USkeletalMeshComponent* Mesh = Racecar->GetMesh())
-			{
-				UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(ParentMaterial, NULL);
+			UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(ParentMaterial, nullptr);
 
-				for (int32 i = 0; i < PersonalisedMaterialIndexes.Num(); ++i)
-				{
-					int32 MaterialIndex = PersonalisedMaterialIndexes[i];
-					if (UMaterialInterface* Material = Mesh->GetMaterial(MaterialIndex))
-					{
-						DynamicMaterial->SetVectorParameterValue(FName("StripeColour"), InColour);
-						DynamicMaterial->SetScalarParameterValue(FName("Emissive Intensity"), EmissiveIntensity);
-						Mesh->SetMaterial(MaterialIndex, DynamicMaterial);
-					}
+			for (int32 i = 0; i < ColourCollection[ColourGroup].PersonalisedMaterialIndexes.Num(); ++i)
+			{
+				const FPersonalisedColourGroup& Group = ColourCollection[ColourGroup];
+				const int32& MaterialIndex = Group.PersonalisedMaterialIndexes[i];
+
+				SetMaterialProperties(Mesh, MaterialIndex, DynamicMaterial, Group.PersonalisedColour, Group.EmissiveIntensity);
+			}
+		}
+	}
+}
+
+void UPersonalisedColours::ActivateColour(const bool& bInActive, const int32& ActivatableIndex)
+{
+	if (!ActivatableColours.IsValidIndex(ActivatableIndex))
+	{
+		EF("Invalid Activatable Index. Expected 0 <= %i <= %i", ActivatableIndex, ActivatableColours.Num());
+		return;
+	}
+
+	// Don't bother activating/deactivating when it's already been activated/deactivated.
+	FActivatableColourGroup& Group = ActivatableColours[ActivatableIndex];
+	if (Group.bIsDefaulted == bInActive)
+	{
+		return;
+	}
+
+	Group.bIsDefaulted = bInActive;
+
+	if (USkeletalMeshComponent* Mesh = GetMesh())
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(ParentMaterial, nullptr);
+
+		for (int32 i = 0; i < Group.ActivatedMaterialIndexes.Num(); ++i)
+		{
+			if (bInActive)
+			{
+				SetMaterialProperties(Mesh, Group.ActivatedMaterialIndexes[i], DynamicMaterial, Group.ActivatedColour, Group.EmissiveIntensity);
+			}
+			else
+			{
+				SetMaterialProperties(Mesh, Group.ActivatedMaterialIndexes[i], DynamicMaterial, Group.DefaultActivatedColour, Group.DefaultEmissiveIntensity);
+			}
+		}
+	}
+}
+
+
+void UPersonalisedColours::SetMaterialProperties(USkeletalMeshComponent* Mesh, const int32& MaterialIndex, UMaterialInstanceDynamic* DynamicMaterial, const FLinearColor& Colour, const float& EmissiveIntensity)
+{
+	if (UMaterialInterface* Material = Mesh->GetMaterial(MaterialIndex))
+	{
+		DynamicMaterial->SetVectorParameterValue(FName("StripeColour"), Colour);
+		DynamicMaterial->SetScalarParameterValue(FName("Emissive Intensity"), EmissiveIntensity);
+		Mesh->SetMaterial(MaterialIndex, DynamicMaterial);
+	}
 #if UE_BUILD_DEVELOPMENT
-					else
-					{
-						EF("Invalid Material Index at: %i", MaterialIndex);
-					}
+	else
+	{
+		EF("Invalid Material Index at: %i", MaterialIndex);
+	}
 #endif
+}
+
+
+void UPersonalisedColours::AssignActivateColourDefaults()
+{
+	if (USkeletalMeshComponent* Mesh = GetMesh())
+	{
+		for (FActivatableColourGroup& Group : ActivatableColours)
+		{
+			if (Group.ActivatedMaterialIndexes.Num() > 0)
+			{
+				if (UMaterialInterface* Material = Mesh->GetMaterial(Group.ActivatedMaterialIndexes[0]))
+				{
+					FHashedMaterialParameterInfo ColourParameter = FHashedMaterialParameterInfo("StripeColour");
+					FHashedMaterialParameterInfo EmissiveIntensityParameter = FHashedMaterialParameterInfo("Emissive Intensity");
+
+					FLinearColor DefaultColour;
+					if (Material->GetVectorParameterValue(ColourParameter, DefaultColour))
+					{
+						Group.DefaultActivatedColour = DefaultColour;
+					}
+
+					float DefaultEmissiveIntensity;
+					if (Material->GetScalarParameterValue(EmissiveIntensityParameter, DefaultEmissiveIntensity))
+					{
+						Group.DefaultEmissiveIntensity = DefaultEmissiveIntensity;
+					}
 				}
 			}
 		}
@@ -75,4 +157,18 @@ void UPersonalisedColours::ChangeColour(const FLinearColor& InColour, const floa
 }
 
 
+USkeletalMeshComponent* UPersonalisedColours::GetMesh() const
+{
+	if (AActor* Owner = GetOwner())
+	{
+		if (ARacecar* Racecar = Cast<ARacecar>(Owner))
+		{
+			if (USkeletalMeshComponent* Mesh = Racecar->GetMesh())
+			{
+				return Mesh;
+			}
+		}
+	}
 
+	return nullptr;
+}
