@@ -102,6 +102,7 @@ private:
 private:
 
 	int32 ClampGear(const int32& Gear) const;
+	FORCEINLINE void CheckReverseLights(const int32& Gear);
 };
 
 

@@ -187,7 +187,19 @@ void ARacecar::Brake(float Throw)
 
 	if (PersonalisedColourComponent)
 	{
-		PersonalisedColourComponent->ActivateColour(Throw != 0.f, 0);
+		bool bThrowIsZero = Throw == 0.f;
+		int32 Gear = GetCurrentGear();
+
+		if (bThrowIsZero && Gear == -1)
+		{
+			PersonalisedColourComponent->ActivateColour(false, 0);
+			PersonalisedColourComponent->ActivateColour(true, 1);
+		}
+		else
+		{
+			PersonalisedColourComponent->ActivateColour(false, 1);
+			PersonalisedColourComponent->ActivateColour(!bThrowIsZero, 0);
+		}
 	}
 }
 
@@ -202,11 +214,11 @@ void ARacecar::Steer(float Throw)
 		{
 			if (UPrimitiveComponent* Physics = Engine->UpdatedPrimitive)
 			{
-				if (GetWorld())
+				if (UWorld* World = GetWorld())
 				{
 					const float RollForce = -30.f;
 
-					const FVector SteeringInput = FVector(Throw * RollForce, 0.f, 0.f) * GetWorld()->GetDeltaSeconds() * 100.f;
+					const FVector SteeringInput = FVector(Throw * RollForce, 0.f, 0.f) * World->GetDeltaSeconds() * 100.f;
 					const FVector AngularRotationRoll = Rotation.RotateVector(SteeringInput);
 
 					Physics->SetPhysicsAngularVelocity(AngularRotationRoll, true);
@@ -252,11 +264,15 @@ void ARacecar::ShiftDown()
 	}
 
 	GetVehicleMovement()->SetTargetGear(ClampGear(CurrentGear - 1), true);
+
+	CheckReverseLights(GetCurrentGear());
 }
 
 void ARacecar::ShiftUp()
 {
 	GetVehicleMovement()->SetTargetGear(ClampGear(GetCurrentGear() + 1), true);
+
+	CheckReverseLights(GetCurrentGear());
 }
 
 int32 ARacecar::GetSpeed() const
@@ -317,6 +333,14 @@ int32 ARacecar::ClampGear(const int32& Gear) const
 {
 	int32 Max = Engine->TransmissionSetup.ForwardGears.Num() - 1;
 	return FMath::Clamp<int32>(Gear, -1, Max);
+}
+
+void ARacecar::CheckReverseLights(const int32& Gear)
+{
+	if (PersonalisedColourComponent)
+	{
+		PersonalisedColourComponent->ActivateColour(Gear == -1, 1);
+	}
 }
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
