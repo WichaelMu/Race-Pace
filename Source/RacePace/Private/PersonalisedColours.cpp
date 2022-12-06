@@ -75,6 +75,11 @@ void UPersonalisedColours::ChangeColour(const TArray<FPersonalisedColourGroup>& 
 
 void UPersonalisedColours::ActivateColour(const bool& bInActive, const int32& ActivatableIndex)
 {
+	if (ActivatableColours.Num() == 0)
+	{
+		return;
+	}
+
 	if (!ActivatableColours.IsValidIndex(ActivatableIndex))
 	{
 		EF("Invalid Activatable Index. Expected 0 <= %i <= %i", ActivatableIndex, ActivatableColours.Num());
