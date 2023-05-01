@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "RacecarUI.h"
 
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
@@ -16,18 +16,18 @@
 UPROPERTY(BlueprintReadWrite) \
 UTextBlock* VarName;\
 
-class ARacePacePlayer;
+class ARacepacePlayer;
 class ARacecar;
 
 class UCanvasPanelSlot;
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RACEPACE_API URacecarUIController : public UActorComponent
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class RACEPACE_API URacecarUIController : public URacecarUI
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	URacecarUIController();
 
@@ -37,7 +37,7 @@ protected:
 	virtual void BeginPlay() override;
 
 
-public:	
+public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -61,15 +61,15 @@ public:
 	TSubclassOf<UUserWidget> DashboardHUDWidget;
 
 	// Lap Time UI Elements.
-	ADD_HUD_ELEMENT(TimingText)
-	ADD_HUD_ELEMENT(BestTimeText)
-	ADD_HUD_ELEMENT(LapDeltaText)
-	ADD_HUD_ELEMENT(LastLapTimeText)
+	ADD_HUD_ELEMENT(TimingText);
+	ADD_HUD_ELEMENT(BestTimeText);
+	ADD_HUD_ELEMENT(LapDeltaText);
+	ADD_HUD_ELEMENT(LastLapTimeText);
 
 	// Dashboard UI Elements.
-	ADD_HUD_ELEMENT(KMPHSpeedText)
-	ADD_HUD_ELEMENT(GearText)
-	ADD_HUD_ELEMENT(RPMText)
+	ADD_HUD_ELEMENT(KMPHSpeedText);
+	ADD_HUD_ELEMENT(GearText);
+	ADD_HUD_ELEMENT(RPMText);
 	UImage* RPMCurrent;
 	UCanvasPanelSlot* RPMCurrentSlot;
 	UCanvasPanelSlot* RPMTextSlot;
@@ -78,17 +78,13 @@ public:
 	const FSlateColor NegativeDeltaColour = FSlateColor(FLinearColor(FColor(255.f, 68.f, 68.f)));
 	const FSlateColor PositiveDeltaGreen = FSlateColor(FLinearColor(FColor(68.f, 255.f, 68.f)));
 
-		
+
 protected:
 
 	UUserWidget* RacepacePlayerWidget;
 
 public:
 
-	UPROPERTY(VisibleAnywhere, Category="Racecar UI")
-		ARacecar* Racecar;
-	UPROPERTY(VisibleAnywhere, Category="Racecar UI")
-		ARacePacePlayer* RacepacePlayer;
 	ARacecar* GetRacecar() const;
 	UUserWidget* GetRacepaceWidget() const;
 
@@ -99,3 +95,5 @@ private:
 	static float CurveFunction(const float& Ratio, const float& Scalar);
 
 };
+
+#undef ADD_HUD_ELEMENT

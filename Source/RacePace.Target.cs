@@ -3,12 +3,13 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class RacePaceTarget : TargetRules
+public class RacepaceTarget : TargetRules
 {
-	public RacePaceTarget( TargetInfo Target) : base(Target)
+	public RacepaceTarget( TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange( new string[] { "RacePace" } );
+		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
+		ExtraModuleNames.Add("Racepace");
 	}
 }

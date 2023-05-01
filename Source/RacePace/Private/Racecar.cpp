@@ -2,81 +2,56 @@
 
 
 #include "Racecar.h"
-#include "RacePaceHelpers.h"
 
-#include "Engine/Engine.h"
 #include "UObject/ConstructorHelpers.h"
 
-#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "WheeledVehicleMovementComponent4W.h"
-#include "VehicleWheel.h"
-#include "VehicleAnimInstance.h"
 
-#include "TimerManager.h"
-#include "Engine/EngineTypes.h"
+#include "ChaosWheeledVehicleMovementComponent.h"
+#include "ChaosVehicleWheel.h"
+#include "VehicleAnimationInstance.h"
 
+#include "RacepacePlayer.h"
+#include "Dashboard.h"
 #include "RacecarUIController.h"
-#include "LapTimer.h"
-#include "DashboardHUD.h"
-#include "PersonalisedColours.h"
 
-#include "RacePacePlayer.h"
-
-#define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && UE_BUILD_DEVELOPMENT && WITH_EDITOR
-
-#define ADD_FORWARD_GEAR(Engine, Gear, InRatio) \
-Engine->TransmissionSetup.ForwardGears[Gear].Ratio = InRatio; \
-
-#define ENABLE_IDLE_REVS 0
-
-
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
+#define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
 ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+	Gimbal = CreateDefaultSubobject<USceneComponent>(TEXT("Gimbal"));
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	PersonalisedColourComponent = CreateDefaultSubobject<UPersonalisedColours>(TEXT("Personalised Colours"));
 
-	SpringArm->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	SpringArm->SetupAttachment(RootComponent);
+	Gimbal->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	SpringArm->SetupAttachment(Gimbal, NAME_None);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/Ferzor/Ferzor"));
-	if (DefaultChassis.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(DefaultChassis.Object);
-	}
-	else
-	{
-		E("Failed to find DefaultChassis")
-	}
-
-	static ConstructorHelpers::FClassFinder<UVehicleAnimInstance> DefaultAnim(TEXT("/Game/Ferzor/AB_Ferzor"));
-	if (DefaultAnim.Succeeded())
-	{
-		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-		GetMesh()->SetAnimClass(DefaultAnim.Class);
-	}
-
 	SpringArm->TargetArmLength = 1000.f;
-	SpringArm->SetRelativeLocation(FVector(-34.4f, 0, 80.f));
 	SpringArm->SetRelativeRotation(FRotator(-20.f, 0, 0.f));
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = true;
 	SpringArm->CameraLagSpeed = 5.f;
 	SpringArm->CameraRotationLagSpeed = 5.f;
 	SpringArm->CameraLagMaxDistance = 5.f;
-	MouseMoveSensitivity = 5.f;
-	ScrollZoomSensitivity = 2.f;
 
-	Engine = CastChecked<UWheeledVehicleMovementComponent4W>(GetVehicleMovement());
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/Ferzor/Ferzor"));
+	if (DefaultChassis.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(DefaultChassis.Object);
+	}
+
+	static ConstructorHelpers::FClassFinder<UVehicleAnimationInstance> DefaultAnimation(TEXT("/Game/Ferzor/AB_Ferzor"));
+	if (DefaultAnimation.Succeeded())
+	{
+		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		GetMesh()->SetAnimClass(DefaultAnimation.Class);
+	}
+
+	Engine = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 	Engine->bReverseAsBrake = false;
 	Engine->WheelSetups.Empty();
 	Engine->WheelSetups.SetNum(4);
@@ -84,11 +59,9 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->WheelSetups[1].BoneName = FName(TEXT("FR"));
 	Engine->WheelSetups[2].BoneName = FName(TEXT("RL"));
 	Engine->WheelSetups[3].BoneName = FName(TEXT("RR"));
-	Engine->WheelSetups[2].bDisableSteering = true;
-	Engine->WheelSetups[3].bDisableSteering = true;
 
-	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultFront(TEXT("/Game/Ferzor/BP_FZ_Front"));
-	static ConstructorHelpers::FClassFinder<UVehicleWheel> DefaultRear(TEXT("/Game/Ferzor/BP_FZ_Rear"));
+	static ConstructorHelpers::FClassFinder<UChaosVehicleWheel> DefaultFront(TEXT("/Game/Ferzor/ChaosWheel_Ferzor_F"));
+	static ConstructorHelpers::FClassFinder<UChaosVehicleWheel> DefaultRear(TEXT("/Game/Ferzor/ChaosWheel_Ferzor_R"));
 	if (DefaultFront.Succeeded())
 	{
 		Engine->WheelSetups[0].WheelClass = DefaultFront.Class;
@@ -105,17 +78,14 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->ChassisHeight = 30.f;
 
 	Engine->EngineSetup.MaxRPM = 12000.f;
-	Engine->MaxEngineRPM = 12000.f;
 
-	Engine->DifferentialSetup.DifferentialType = EVehicleDifferential4W::LimitedSlip_RearDrive;
+	Engine->DifferentialSetup.DifferentialType = EVehicleDifferential::RearWheelDrive;
 
-	Engine->TransmissionSetup.bUseGearAutoBox = false;
-	Engine->TransmissionSetup.GearSwitchTime = .1f;
-	Engine->TransmissionSetup.GearAutoBoxLatency = 1.f;
-	Engine->TransmissionSetup.ClutchStrength = 20.f;
+	Engine->TransmissionSetup.bUseAutomaticGears = false;
+	Engine->TransmissionSetup.GearChangeTime = .1f;
 	Engine->TransmissionSetup.FinalRatio = 1.f;
-	Engine->TransmissionSetup.ReverseGearRatio = -23.f;
-	Engine->TransmissionSetup.ClutchStrength = 560.f;
+	Engine->TransmissionSetup.ReverseGearRatios.Empty();
+	Engine->TransmissionSetup.ReverseGearRatios.Add(23.f);
 
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.f, 100.f);
@@ -123,112 +93,72 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(7000.f, 490.f);
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(11500.f, 415.f);
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(12000.f, 135.f);
-	Engine->EngineSetup.DampingRateZeroThrottleClutchEngaged = .44f;
+	Engine->EngineSetup.MaxTorque = 12000.f;
 
-	Engine->SteeringCurve.GetRichCurve()->Reset();
-	Engine->SteeringCurve.GetRichCurve()->AddKey(0.f, 1.f);
-	Engine->SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
-	Engine->SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
+	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->Reset();
+	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(0.f, 1.f);
+	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
+	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
 
-	BaseMass = 750.f;
-	Engine->Mass = BaseMass;
+	Engine->Mass = 750.f;
 
-	RacecarUIController = CreateDefaultSubobject<URacecarUIController>("Racecar UI Controller");
+	if (UPrimitiveComponent* Physics = Cast<UPrimitiveComponent>(GetMesh()))
+	{
+		Physics->SetSimulatePhysics(true);
+	}
 
-	LapTimingComponent = CreateDefaultSubobject<ULapTimer>("Lap Timing Component");
-	DashboardHUDComponent = CreateDefaultSubobject<UDashboardHUD>("Dashboard HUD Component");
+	MouseMoveSensitivity = 5.f;
 
-	LapTimingComponent->RacecarUIController = RacecarUIController;
-	LapTimingComponent->Racecar = this;
-	DashboardHUDComponent->RacecarUIController = RacecarUIController;
-	DashboardHUDComponent->Racecar = this;
+	RacecarUIController = CreateDefaultSubobject<URacecarUIController>(TEXT("Racecar UI Controller"));
+	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
+
+	RacecarUIController->Racecar = Dashboard->Racecar = this;
 }
-
 
 void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// ...
+
+	PlayerInputComponent->BindAction("Up Shift", EInputEvent::IE_Pressed, this, &ARacecar::ShiftUp);
+	PlayerInputComponent->BindAction("Down Shift", EInputEvent::IE_Pressed, this, &ARacecar::ShiftDown);
+
 	PlayerInputComponent->BindAxis("Throttle", this, &ARacecar::Throttle);
 	PlayerInputComponent->BindAxis("Brake", this, &ARacecar::Brake);
 	PlayerInputComponent->BindAxis("Steer", this, &ARacecar::Steer);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &ARacecar::LookUp);
-	PlayerInputComponent->BindAxis("LookRight", this, &ARacecar::LookRight);
-
-	PlayerInputComponent->BindAxis("Scroll", this, &ARacecar::AdjustZoom);
-
-	PlayerInputComponent->BindAction("Gear Up", IE_Pressed, this, &ARacecar::ShiftUp);
-	PlayerInputComponent->BindAction("Gear Down", IE_Pressed, this, &ARacecar::ShiftDown);
+	PlayerInputComponent->BindAxis("HorizontalLook", this, &ARacecar::LookRight);
+	PlayerInputComponent->BindAxis("VerticalLook", this, &ARacecar::LookUp);
 }
-
 
 void ARacecar::Throttle(float Throw)
 {
-#if ENABLE_IDLE_REVS
-	GetVehicleMovementComponent()->SetHandbrakeInput(false);
-
-	if (Throw > 0)
-	{
-		GetVehicleMovementComponent()->SetThrottleInput(Throw);
-	}
-	else if (GetSpeed() == 0 && GetCurrentGear() != 0)
-	{
-		// Idle Revs.
-		GetVehicleMovementComponent()->SetHandbrakeInput(true);
-		GetVehicleMovementComponent()->SetThrottleInput(1.f);
-	}
-	else
-	{
-		GetVehicleMovementComponent()->SetThrottleInput(0.f);
-	}
-#else
-	GetVehicleMovementComponent()->SetThrottleInput(Throw);
-#endif
+	GetVehicleMovement()->SetThrottleInput(Throw);
 }
 
 void ARacecar::Brake(float Throw)
 {
-	GetVehicleMovementComponent()->SetBrakeInput(Throw);
-
-	if (PersonalisedColourComponent)
-	{
-		bool bThrowIsZero = Throw == 0.f;
-		int32 Gear = GetCurrentGear();
-
-		if (bThrowIsZero && Gear == -1)
-		{
-			PersonalisedColourComponent->ActivateColour(false, 0);
-			PersonalisedColourComponent->ActivateColour(true, 1);
-		}
-		else
-		{
-			PersonalisedColourComponent->ActivateColour(false, 1);
-			PersonalisedColourComponent->ActivateColour(!bThrowIsZero, 0);
-		}
-	}
+	GetVehicleMovement()->SetBrakeInput(Throw);
 }
 
 void ARacecar::Steer(float Throw)
 {
 	GetVehicleMovementComponent()->SetSteeringInput(Throw);
 
-	if (bAcceptRollCorrection)
+	const FRotator Rotation = GetActorRotation();
+	if (FMath::Abs(Rotation.Roll) > 135.f)
 	{
-		const FRotator Rotation = GetActorRotation();
-		if (FMath::Abs(Rotation.Roll) > 135.f)
+		if (UPrimitiveComponent* Physics = GetVehicleMovement()->UpdatedPrimitive)
 		{
-			if (UPrimitiveComponent* Physics = Engine->UpdatedPrimitive)
+			if (UWorld* World = GetWorld())
 			{
-				if (UWorld* World = GetWorld())
-				{
-					const float RollForce = -30.f;
+				const float RollForce = -30.f;
 
-					const FVector SteeringInput = FVector(Throw * RollForce, 0.f, 0.f) * World->GetDeltaSeconds() * 100.f;
-					const FVector AngularRotationRoll = Rotation.RotateVector(SteeringInput);
+				const FVector SteeringInput = FVector(Throw * RollForce, 0.f, 0.f) * World->GetDeltaSeconds() * 100.f;
+				const FVector AngularRotationRoll = Rotation.RotateVector(SteeringInput);
 
-					Physics->SetPhysicsAngularVelocity(AngularRotationRoll, true);
-				}
+				Physics->SetPhysicsAngularVelocityInDegrees(AngularRotationRoll, true);
 			}
 		}
 	}
@@ -248,37 +178,39 @@ void ARacecar::LookRight(float Throw)
 {
 	if (Throw != 0)
 	{
-		FRotator NewRotation = SpringArm->GetRelativeRotation();
+		FRotator NewRotation = Gimbal->GetComponentRotation();
 		NewRotation.Yaw += Throw * MouseMoveSensitivity;
-		SpringArm->SetRelativeRotation(NewRotation);
+		Gimbal->SetWorldRotation(NewRotation);
 	}
 }
 
-void ARacecar::AdjustZoom(float Throw)
+ARacepacePlayer* ARacecar::GetRacepacePlayerController()
 {
-	SpringArm->TargetArmLength += Throw * ScrollZoomSensitivity;
-}
-
-void ARacecar::ShiftDown()
-{
-	int32 CurrentGear = GetCurrentGear();
-
-	// Prevent engaging Reverse when still going forward at Speed. (Stops instantly stopping because of Reverse)
-	if (CurrentGear == 0 && GetSpeed() > 15)
+	if (!RacepacePlayer)
 	{
-		return;
+		if (ARacepacePlayer* RacepaceController = Cast<ARacepacePlayer>(GetController()))
+		{
+			RacepacePlayer = RacepaceController;
+		}
 	}
 
-	GetVehicleMovement()->SetTargetGear(ClampGear(CurrentGear - 1), true);
-
-	CheckReverseLights(GetCurrentGear());
+	return RacepacePlayer;
 }
 
 void ARacecar::ShiftUp()
 {
-	GetVehicleMovement()->SetTargetGear(ClampGear(GetCurrentGear() + 1), true);
+	int32 CurrentGear = GetGear(true);
+	int32 TargetGear = ClampGear(CurrentGear + 1);
+	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), false);
+	RacecarUIController->SetGear(GetGearString(true));
+}
 
-	CheckReverseLights(GetCurrentGear());
+void ARacecar::ShiftDown()
+{
+	int32 CurrentGear = GetGear(true);
+	int32 TargetGear = ClampGear(CurrentGear - 1);
+	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), false);
+	RacecarUIController->SetGear(GetGearString(true));
 }
 
 int32 ARacecar::GetSpeed() const
@@ -289,7 +221,7 @@ int32 ARacecar::GetSpeed() const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::White, FString::FromInt(Speed));
-	}
+}
 #endif
 
 	const int32 RoundedSpeed = FMath::RoundToInt(Speed);
@@ -303,50 +235,47 @@ int32 ARacecar::GetRPM() const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::FromInt(RPM));
-	}
+}
 #endif
 
 	return RPM;
 }
 
-int32 ARacecar::GetCurrentGear() const
+int32 ARacecar::GetGear(bool bGetTargetGearInstead) const
 {
-	const int32 Gear = GetVehicleMovement()->GetCurrentGear();
+	const int32 Gear = bGetTargetGearInstead
+		? GetVehicleMovement()->GetTargetGear()
+		: GetVehicleMovement()->GetCurrentGear();
+
 #if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(0, 0.f, FColor::Blue, FString::FromInt(Gear));
-	}
+}
 #endif
 
 	return Gear;
 }
 
-ARacePacePlayer* ARacecar::GetRacepacePlayerController()
+FString ARacecar::GetGearString(bool bGetTargetGearInstead) const
 {
-	if (!RacepacePlayer)
+	int32 Gear = GetGear(bGetTargetGearInstead);
+
+	if (Gear == 0)
 	{
-		if (ARacePacePlayer* RacepaceController = Cast<ARacePacePlayer>(GetController()))
-		{
-			RacepacePlayer = RacepaceController;
-		}
+		return FString::Printf(TEXT("N"));
 	}
 
-	return RacepacePlayer;
+	if (Gear == -1)
+	{
+		return FString::Printf(TEXT("R"));
+	}
+
+	return FString::Printf(TEXT("%i"), Gear);
 }
 
-int32 ARacecar::ClampGear(const int32& Gear) const
+int32 ARacecar::ClampGear(const int32 Gear) const
 {
-	int32 Max = Engine->TransmissionSetup.ForwardGears.Num() - 1;
+	int32 Max = Engine->TransmissionSetup.ForwardGearRatios.Num() - 1;
 	return FMath::Clamp<int32>(Gear, -1, Max);
 }
-
-void ARacecar::CheckReverseLights(const int32& Gear)
-{
-	if (PersonalisedColourComponent)
-	{
-		PersonalisedColourComponent->ActivateColour(Gear == -1, 1);
-	}
-}
-
-PRAGMA_ENABLE_DEPRECATION_WARNINGS

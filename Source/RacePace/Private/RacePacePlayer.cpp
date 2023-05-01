@@ -1,50 +1,33 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "RacePacePlayer.h"
-#include "RacePaceHelpers.h"
+#include "RacepacePlayer.h"
 
-#include "Racecar.h"
-
-#include "RacecarUIController.h"
-
-
-ARacePacePlayer::ARacePacePlayer()
+ARacepacePlayer::ARacepacePlayer()
 {
-
 }
 
-void ARacePacePlayer::BeginPlay()
+void ARacepacePlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
 	// ...
-
 }
 
-void ARacePacePlayer::AddLapTime(const float& NewLapTime)
+void ARacepacePlayer::AddLapTime(const float& NewLapTime)
 {
-	LapTimes.Add(NewLapTime);
 }
 
-TArray<float> ARacePacePlayer::GetLapTimes() const
+TArray<float> ARacepacePlayer::GetLapTimes() const
 {
-	return LapTimes;
+	return TArray<float>();
 }
 
-float ARacePacePlayer::GetLastLapTime() const
+float ARacepacePlayer::GetLastLapTime() const
 {
-	if (LapTimes.Num() > 0)
-	{
-		return LapTimes[LapTimes.Num() - 1];
-	}
-
-	return 0.f;
+	return 0.0f;
 }
 
-
-void ARacePacePlayer::ClearLapTimes()
+void ARacepacePlayer::ClearLapTimes()
 {
-	LapTimes.Empty();
 }
-

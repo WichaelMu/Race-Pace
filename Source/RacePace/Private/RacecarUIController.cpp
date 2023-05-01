@@ -2,12 +2,10 @@
 
 
 #include "RacecarUIController.h"
-#include "RacePaceHelpers.h"
 
 #include "RacePacePlayer.h"
 #include "Racecar.h"
-#include "LapTimer.h"
-#include "WheeledVehicleMovementComponent4W.h"
+#include "ChaosWheeledVehicleMovementComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
@@ -40,14 +38,14 @@ void URacecarUIController::BeginPlay()
 	if (ARacecar* RacecarPawn = Cast<ARacecar>(GetOwner()))
 	{
 		Racecar = RacecarPawn;
-		if (ARacePacePlayer* PlayerController = Cast<ARacePacePlayer>(RacecarPawn->GetController()))
+		if (ARacepacePlayer* PlayerController = Cast<ARacepacePlayer>(RacecarPawn->GetController()))
 		{
-			RacepacePlayer = PlayerController;
+			SetPlayer(PlayerController);
 		}
 	}
 
 	RacepacePlayerWidget = CreateWidget<UUserWidget>(GetWorld(), DashboardHUDWidget);
-	RacepacePlayerWidget->SetOwningPlayer(RacepacePlayer);
+	RacepacePlayerWidget->SetOwningPlayer(GetPlayer());
 
 	if (UUserWidget* Widget = Cast<UUserWidget>(RacepacePlayerWidget))
 	{
@@ -75,11 +73,19 @@ void URacecarUIController::BeginPlay()
 
 		RacepacePlayerWidget->AddToViewport();
 	}
+
+	SetGear(Racecar->GetGearString());
 }
 
 void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Racecar)
+	{
+		SetSpeed(Racecar->GetSpeed());
+		SetRPM(Racecar->GetRPM());
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +128,7 @@ void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const fl
 		Result += bIsBehind
 			? FString("+")
 			: FString("-");
-		Result += ULapTimer::GetTime(FMath::Abs(Delta));
+		//Result += ULapTimer::GetTime(FMath::Abs(Delta));
 
 		LapDeltaText->SetText(FText::FromString(Result));
 
@@ -163,15 +169,21 @@ void URacecarUIController::SetGear(const FString& InGear)
 	}
 }
 
-
 void URacecarUIController::CalculateRPMGraphics(const int32& RPM)
 {
-	CNULLP(Racecar);
-	CNULLP(Racecar->Engine);
+	if (!Racecar)
+	{
+		return;
+	}
+
+	if (!Racecar->Engine)
+	{
+		return;
+	}
 
 	const float MaxRPMGraphicSize = 500.f;
 	const int32 NumRPMBlocks = RPMBlocks.Num();
-	const float RacecarMaxRPM = Racecar->Engine->MaxEngineRPM;
+	const float RacecarMaxRPM = Racecar->Engine->EngineSetup.MaxRPM;
 
 	const float CurrentToMaxRatio = RPM / RacecarMaxRPM;
 	const float BlockPerRPMRange = RacecarMaxRPM / NumRPMBlocks;
@@ -200,8 +212,12 @@ void URacecarUIController::CalculateRPMGraphics(const int32& RPM)
 	const float DefaultXPositionDefault = DefaultPanelSlot->GetPosition().X;
 	const float RPMCurrentYDefault = RPMCurrentSlot->GetPosition().Y;
 	FVector2D RPMToGraphicPosition = FVector2D(DefaultXPositionDefault + RPMBarSize.X, RPMCurrentYDefault);
-	RPMTextSlot->SetPosition(RPMToGraphicPosition);
-	RPMCurrentSlot->SetPosition(RPMToGraphicPosition);
+
+	if (RPM <= RacecarMaxRPM)
+	{
+		RPMTextSlot->SetPosition(RPMToGraphicPosition);
+		RPMCurrentSlot->SetPosition(RPMToGraphicPosition);
+	}
 }
 
 

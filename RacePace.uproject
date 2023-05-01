@@ -1,27 +1,29 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.27",
+	"EngineAssociation": "5.1",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "RacePace",
+			"Name": "Racepace",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"PhysXVehicles",
-				"Engine",
-				"UMG"
+				"ChaosVehicles",
+				"Engine"
 			]
 		}
 	],
 	"Plugins": [
 		{
 			"Name": "ModelingToolsEditorMode",
-			"Enabled": true
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
 		},
 		{
-			"Name": "StaticMeshEditorExtension",
+			"Name": "ChaosVehiclesPlugin",
 			"Enabled": true
 		}
 	]
