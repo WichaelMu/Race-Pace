@@ -16,6 +16,8 @@
 #include "Dashboard.h"
 #include "RacecarUIController.h"
 
+#include "PersonalisedColours.h"
+
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
 ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
@@ -84,21 +86,41 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->TransmissionSetup.bUseAutomaticGears = false;
 	Engine->TransmissionSetup.GearChangeTime = .1f;
 	Engine->TransmissionSetup.FinalRatio = 1.f;
+	Engine->TransmissionSetup.ForwardGearRatios.Empty();
+	Engine->TransmissionSetup.ForwardGearRatios.Add(21.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(15.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(12.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(9.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(7.5f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(4.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(2.f);
+	Engine->TransmissionSetup.ForwardGearRatios.Add(1.35f);
 	Engine->TransmissionSetup.ReverseGearRatios.Empty();
 	Engine->TransmissionSetup.ReverseGearRatios.Add(23.f);
 
+	Engine->TransmissionSetup.ChangeUpRPM = 10000.f;
+	Engine->TransmissionSetup.ChangeDownRPM = 4500.f;
+	Engine->TransmissionSetup.GearChangeTime = .05f;
+	Engine->TransmissionSetup.TransmissionEfficiency = .96f;
+
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.f, 100.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(4200.f, 300.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(7000.f, 490.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(11500.f, 415.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(12000.f, 135.f);
-	Engine->EngineSetup.MaxTorque = 12000.f;
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(7500.f, 250.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(11000.f, 200.f);
+	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(12000.f, 130.f);
+	Engine->EngineSetup.MaxTorque = 250.f;
+
+	Engine->EngineSetup.EngineIdleRPM = 2300.f;
+	Engine->EngineSetup.EngineRevUpMOI = 1.f;
+	Engine->EngineSetup.EngineRevDownRate = 450.f;
 
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->Reset();
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(0.f, 1.f);
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
+
+	Engine->DragCoefficient = .2f;
+	Engine->DownforceCoefficient = 16.f;
 
 	Engine->Mass = 750.f;
 
@@ -113,6 +135,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
 
 	RacecarUIController->Racecar = Dashboard->Racecar = this;
+
+	PersonalisedColours = CreateDefaultSubobject<UPersonalisedColours>(TEXT("Personalised Colours"));
 }
 
 void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -140,6 +164,24 @@ void ARacecar::Throttle(float Throw)
 void ARacecar::Brake(float Throw)
 {
 	GetVehicleMovement()->SetBrakeInput(Throw);
+	
+	if (PersonalisedColours)
+	{
+		bool bThrowIsZero = Throw == 0.f;
+		int32 Gear = GetGear();
+
+		if (bThrowIsZero && Gear == -1)
+		{
+			PersonalisedColours->ActivateColour(false, 1);
+			PersonalisedColours->ActivateColour(true, 0);
+		}
+		else
+		{
+			PersonalisedColours->ActivateColour(false, 0);
+			PersonalisedColours->ActivateColour(!bThrowIsZero, 1);
+		}
+	}
+
 }
 
 void ARacecar::Steer(float Throw)
@@ -199,18 +241,22 @@ ARacepacePlayer* ARacecar::GetRacepacePlayerController()
 
 void ARacecar::ShiftUp()
 {
-	int32 CurrentGear = GetGear(true);
+	int32 CurrentGear = GetGear();
 	int32 TargetGear = ClampGear(CurrentGear + 1);
-	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), false);
+	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), true);
 	RacecarUIController->SetGear(GetGearString(true));
+
+	CheckReverseLights(TargetGear);
 }
 
 void ARacecar::ShiftDown()
 {
-	int32 CurrentGear = GetGear(true);
+	int32 CurrentGear = GetGear();
 	int32 TargetGear = ClampGear(CurrentGear - 1);
-	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), false);
+	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), true);
 	RacecarUIController->SetGear(GetGearString(true));
+
+	CheckReverseLights(TargetGear);
 }
 
 int32 ARacecar::GetSpeed() const
@@ -221,7 +267,7 @@ int32 ARacecar::GetSpeed() const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::White, FString::FromInt(Speed));
-}
+	}
 #endif
 
 	const int32 RoundedSpeed = FMath::RoundToInt(Speed);
@@ -235,7 +281,7 @@ int32 ARacecar::GetRPM() const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::FromInt(RPM));
-}
+	}
 #endif
 
 	return RPM;
@@ -251,7 +297,7 @@ int32 ARacecar::GetGear(bool bGetTargetGearInstead) const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(0, 0.f, FColor::Blue, FString::FromInt(Gear));
-}
+	}
 #endif
 
 	return Gear;
@@ -278,4 +324,9 @@ int32 ARacecar::ClampGear(const int32 Gear) const
 {
 	int32 Max = Engine->TransmissionSetup.ForwardGearRatios.Num() - 1;
 	return FMath::Clamp<int32>(Gear, -1, Max);
+}
+
+void ARacecar::CheckReverseLights(const int32 TargetGear)
+{
+	PersonalisedColours->ActivateColour(TargetGear == -1, 0);
 }

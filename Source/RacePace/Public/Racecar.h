@@ -15,6 +15,8 @@ class ARacepacePlayer;
 class URacecarUIController;
 class UDashboard;
 
+class UPersonalisedColours;
+
 /**
  *
  */
@@ -59,6 +61,8 @@ private:
 
 	int32 ClampGear(const int32 Gear) const;
 
+	void CheckReverseLights(const int32 TargetGear);
+
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
@@ -73,4 +77,7 @@ private:
 		float MouseMoveSensitivity;
 
 	URacecarUIController* RacecarUIController;
+
+	UPROPERTY(EditAnywhere, Category = Personalisation)
+		UPersonalisedColours* PersonalisedColours;
 };
