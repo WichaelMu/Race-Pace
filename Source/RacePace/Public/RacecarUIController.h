@@ -51,9 +51,9 @@ public:
 	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime);
 
 	// Dashboard Functions.
-	void SetSpeed(const int32& InKMPH);
-	void SetRPM(const int32& InRPM);
-	void SetGear(const FString& InGear);
+	void SetSpeed(const int32 InKMPH);
+	void SetRPM(const int32 InRPM);
+	void SetGear(const FString InGear);
 
 public:
 
@@ -90,7 +90,7 @@ public:
 
 private:
 
-	void CalculateRPMGraphics(const int32& RPM);
+	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);
 
 	static float CurveFunction(const float& Ratio, const float& Scalar);
 

@@ -84,7 +84,9 @@ void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, F
 	if (Racecar)
 	{
 		SetSpeed(Racecar->GetSpeed());
-		SetRPM(Racecar->GetRPM());
+		const int32 RPM = Racecar->GetRPM();
+		SetRPM(RPM);
+		CalculateRPMGraphics(RPM, DeltaTime);
 	}
 }
 
@@ -143,7 +145,7 @@ void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const fl
 // Dashboard Implementations.
 ////////////////////////////////////////////////////////////////////////////////
 
-void URacecarUIController::SetSpeed(const int32& InKMPH)
+void URacecarUIController::SetSpeed(const int32 InKMPH)
 {
 	if (KMPHSpeedText)
 	{
@@ -151,17 +153,15 @@ void URacecarUIController::SetSpeed(const int32& InKMPH)
 	}
 }
 
-void URacecarUIController::SetRPM(const int32& InRPM)
+void URacecarUIController::SetRPM(const int32 InRPM)
 {
 	if (RPMText)
 	{
 		RPMText->SetText(FText::FromString(FString::Printf(TEXT("%i"), InRPM)));
 	}
-
-	CalculateRPMGraphics(InRPM);
 }
 
-void URacecarUIController::SetGear(const FString& InGear)
+void URacecarUIController::SetGear(const FString InGear)
 {
 	if (GearText)
 	{
@@ -169,7 +169,7 @@ void URacecarUIController::SetGear(const FString& InGear)
 	}
 }
 
-void URacecarUIController::CalculateRPMGraphics(const int32& RPM)
+void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float DeltaTime)
 {
 	if (!Racecar)
 	{
@@ -215,8 +215,10 @@ void URacecarUIController::CalculateRPMGraphics(const int32& RPM)
 
 	if (RPM <= RacecarMaxRPM)
 	{
-		RPMTextSlot->SetPosition(RPMToGraphicPosition);
-		RPMCurrentSlot->SetPosition(RPMToGraphicPosition);
+		FVector2D RPMInterp = FMath::Vector2DInterpTo(RPMCurrentSlot->GetPosition(), RPMToGraphicPosition, DeltaTime, 7.f);
+
+		RPMTextSlot->SetPosition(RPMInterp);
+		RPMCurrentSlot->SetPosition(RPMInterp);
 	}
 }
 
