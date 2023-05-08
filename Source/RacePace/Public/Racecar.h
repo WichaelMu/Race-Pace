@@ -9,13 +9,14 @@
 class USpringArmComponent;
 class UCameraComponent;
 class USceneComponent;
-class UChaosWheeledVehicleMovementComponent;
 
 class ARacepacePlayer;
 class URacecarUIController;
 class UDashboard;
 
 class UPersonalisedColours;
+
+#define CHAOS_VEHICLE(Racecar) Cast<UChaosWheeledVehicleMovementComponent>((Racecar)->GetVehicleMovement())
 
 /**
  *
@@ -36,7 +37,6 @@ public:
 
 	UDashboard* Dashboard;
 	ARacepacePlayer* RacepacePlayer;
-	UChaosWheeledVehicleMovementComponent* Engine;
 
 public:
 

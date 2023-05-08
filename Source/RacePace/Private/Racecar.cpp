@@ -22,6 +22,7 @@
 
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
+#define CHAOS_VEHICLE() Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement())
 #define ADD_GEAR_RATIO(Ratio) Engine->TransmissionSetup.ForwardGearRatios.Add(Ratio)
 #define ADD_TORQUE_CURVE(RPM, Torque) Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(RPM, Torque)
 #define ADD_STEERING_CURVE(KmpH, Ratio) Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(KmpH, Ratio)
@@ -61,7 +62,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 		GetMesh()->SetAnimClass(DefaultAnimation.Class);
 	}
 
-	Engine = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
+	UChaosWheeledVehicleMovementComponent* Engine = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 	Engine->bReverseAsBrake = false;
 	Engine->WheelSetups.Empty();
 	Engine->WheelSetups.SetNum(4);
@@ -95,14 +96,14 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->TransmissionSetup.GearChangeTime = .1f;
 	Engine->TransmissionSetup.FinalRatio = 1.f;
 	Engine->TransmissionSetup.ForwardGearRatios.Empty();
-	ADD_GEAR_RATIO(12.f);
-	ADD_GEAR_RATIO(9.775f);
-	ADD_GEAR_RATIO(8.2f);
-	ADD_GEAR_RATIO(6.8f);
+	ADD_GEAR_RATIO(26.f);
+	ADD_GEAR_RATIO(19.f);
+	ADD_GEAR_RATIO(15.f);
+	ADD_GEAR_RATIO(10.f);
+	ADD_GEAR_RATIO(7.775f);
 	ADD_GEAR_RATIO(6.f);
-	ADD_GEAR_RATIO(5.3f);
-	ADD_GEAR_RATIO(4.5f);
-	ADD_GEAR_RATIO(4.f);
+	ADD_GEAR_RATIO(4.9f);
+	ADD_GEAR_RATIO(3.8f);
 	Engine->TransmissionSetup.ReverseGearRatios.Empty();
 	Engine->TransmissionSetup.ReverseGearRatios.Add(23.f);
 
@@ -276,7 +277,7 @@ void ARacecar::ShiftDown()
 
 int32 ARacecar::GetSpeed() const
 {
-	const float Speed = Engine->GetForwardSpeed() * .036f;
+	const float Speed = GetVehicleMovement()->GetForwardSpeed() * .036f;
 
 #if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
@@ -291,7 +292,7 @@ int32 ARacecar::GetSpeed() const
 
 int32 ARacecar::GetRPM() const
 {
-	const int32 RPM = FMath::RoundToInt(Engine->GetEngineRotationSpeed());
+	const int32 RPM = FMath::RoundToInt(CHAOS_VEHICLE()->GetEngineRotationSpeed());
 #if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{
@@ -337,7 +338,7 @@ FString ARacecar::GetGearString(bool bGetTargetGearInstead) const
 
 int32 ARacecar::ClampGear(const int32 Gear) const
 {
-	int32 Max = Engine->TransmissionSetup.ForwardGearRatios.Num() - 1;
+	int32 Max = CHAOS_VEHICLE()->TransmissionSetup.ForwardGearRatios.Num() - 1;
 	return FMath::Clamp<int32>(Gear, -1, Max);
 }
 

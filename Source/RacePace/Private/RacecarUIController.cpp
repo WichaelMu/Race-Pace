@@ -176,14 +176,14 @@ void URacecarUIController::CalculateRPMGraphics(const int32& RPM)
 		return;
 	}
 
-	if (!Racecar->Engine)
+	if (!CHAOS_VEHICLE(Racecar))
 	{
 		return;
 	}
 
 	const float MaxRPMGraphicSize = 500.f;
 	const int32 NumRPMBlocks = RPMBlocks.Num();
-	const float RacecarMaxRPM = Racecar->Engine->EngineSetup.MaxRPM;
+	const float RacecarMaxRPM = CHAOS_VEHICLE(Racecar)->EngineSetup.MaxRPM;
 
 	const float CurrentToMaxRatio = RPM / RacecarMaxRPM;
 	const float BlockPerRPMRange = RacecarMaxRPM / NumRPMBlocks;
