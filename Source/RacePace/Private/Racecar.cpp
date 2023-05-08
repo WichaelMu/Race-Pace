@@ -18,6 +18,8 @@
 
 #include "PersonalisedColours.h"
 
+#include "RDefinitions.h"
+
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
 ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
@@ -33,12 +35,14 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
 	SpringArm->TargetArmLength = 1000.f;
+	SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 	SpringArm->SetRelativeRotation(FRotator(-20.f, 0, 0.f));
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = true;
 	SpringArm->CameraLagSpeed = 5.f;
 	SpringArm->CameraRotationLagSpeed = 5.f;
 	SpringArm->CameraLagMaxDistance = 5.f;
+	SpringArm->bInheritRoll = false;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> DefaultChassis(TEXT("/Game/Ferzor/Ferzor"));
 	if (DefaultChassis.Succeeded())
@@ -111,7 +115,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->EngineSetup.MaxTorque = 250.f;
 
 	Engine->EngineSetup.EngineIdleRPM = 2300.f;
-	Engine->EngineSetup.EngineRevUpMOI = 1.f;
+	Engine->EngineSetup.EngineRevUpMOI = 5.f;
 	Engine->EngineSetup.EngineRevDownRate = 450.f;
 
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->Reset();
@@ -119,8 +123,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
 
-	Engine->DragCoefficient = .2f;
-	Engine->DownforceCoefficient = 16.f;
+	Engine->DragCoefficient = .4f;
+	Engine->DownforceCoefficient = 80.f;
 
 	Engine->Mass = 750.f;
 
@@ -246,7 +250,7 @@ void ARacecar::ShiftUp()
 	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), true);
 	RacecarUIController->SetGear(GetGearString(true));
 
-	CheckReverseLights(TargetGear);
+	CheckReverseLights(GetGear(true));
 }
 
 void ARacecar::ShiftDown()
@@ -256,7 +260,7 @@ void ARacecar::ShiftDown()
 	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), true);
 	RacecarUIController->SetGear(GetGearString(true));
 
-	CheckReverseLights(TargetGear);
+	CheckReverseLights(GetGear(true));
 }
 
 int32 ARacecar::GetSpeed() const
