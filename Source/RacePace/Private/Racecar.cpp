@@ -22,6 +22,10 @@
 
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
+#define ADD_GEAR_RATIO(Ratio) Engine->TransmissionSetup.ForwardGearRatios.Add(Ratio)
+#define ADD_TORQUE_CURVE(RPM, Torque) Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(RPM, Torque)
+#define ADD_STEERING_CURVE(KmpH, Ratio) Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(KmpH, Ratio)
+
 ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 {
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -91,14 +95,14 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->TransmissionSetup.GearChangeTime = .1f;
 	Engine->TransmissionSetup.FinalRatio = 1.f;
 	Engine->TransmissionSetup.ForwardGearRatios.Empty();
-	Engine->TransmissionSetup.ForwardGearRatios.Add(21.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(15.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(12.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(9.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(7.5f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(4.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(2.f);
-	Engine->TransmissionSetup.ForwardGearRatios.Add(1.35f);
+	ADD_GEAR_RATIO(12.f);
+	ADD_GEAR_RATIO(9.775f);
+	ADD_GEAR_RATIO(8.2f);
+	ADD_GEAR_RATIO(6.8f);
+	ADD_GEAR_RATIO(6.f);
+	ADD_GEAR_RATIO(5.3f);
+	ADD_GEAR_RATIO(4.5f);
+	ADD_GEAR_RATIO(4.f);
 	Engine->TransmissionSetup.ReverseGearRatios.Empty();
 	Engine->TransmissionSetup.ReverseGearRatios.Add(23.f);
 
@@ -108,20 +112,27 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->TransmissionSetup.TransmissionEfficiency = .96f;
 
 	Engine->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.f, 100.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(7500.f, 250.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(11000.f, 200.f);
-	Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(12000.f, 130.f);
+	ADD_TORQUE_CURVE(0.f, 150.f);
+	ADD_TORQUE_CURVE(3200.f, 60.f);
+	ADD_TORQUE_CURVE(6000.f, 65.f);
+	ADD_TORQUE_CURVE(7850.f, 110.f);
+	ADD_TORQUE_CURVE(9500.f, 120.f);
+	ADD_TORQUE_CURVE(10500.f, 100.f);
+	ADD_TORQUE_CURVE(12000.f, 20.f);
 	Engine->EngineSetup.MaxTorque = 250.f;
 
 	Engine->EngineSetup.EngineIdleRPM = 2300.f;
+	Engine->EngineSetup.EngineBrakeEffect = .68f;
 	Engine->EngineSetup.EngineRevUpMOI = 5.f;
-	Engine->EngineSetup.EngineRevDownRate = 450.f;
+	Engine->EngineSetup.EngineRevDownRate = 150.f;
 
 	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->Reset();
-	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(0.f, 1.f);
-	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(132.f, .3f);
-	Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(290.f, .1f);
+	ADD_STEERING_CURVE(0.f, 1.f);
+	ADD_STEERING_CURVE(60.f, .42f);
+	ADD_STEERING_CURVE(100.f, .1f);
+	ADD_STEERING_CURVE(150.f, .2f);
+	ADD_STEERING_CURVE(240.f, .1f);
+	Engine->SteeringSetup.SteeringType = ESteeringType::Ackermann;
 
 	Engine->DragCoefficient = .4f;
 	Engine->DownforceCoefficient = 80.f;
@@ -168,7 +179,7 @@ void ARacecar::Throttle(float Throw)
 void ARacecar::Brake(float Throw)
 {
 	GetVehicleMovement()->SetBrakeInput(Throw);
-	
+
 	if (PersonalisedColours)
 	{
 		bool bThrowIsZero = Throw == 0.f;
