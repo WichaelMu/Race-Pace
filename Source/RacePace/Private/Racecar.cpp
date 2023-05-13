@@ -146,6 +146,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	}
 
 	MouseMoveSensitivity = 5.f;
+	MouseScrollSensitivity = 5.f;
 
 	RacecarUIController = CreateDefaultSubobject<URacecarUIController>(TEXT("Racecar UI Controller"));
 	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
@@ -170,6 +171,8 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	PlayerInputComponent->BindAxis("HorizontalLook", this, &ARacecar::LookRight);
 	PlayerInputComponent->BindAxis("VerticalLook", this, &ARacecar::LookUp);
+
+	PlayerInputComponent->BindAxis("Zoom", this, &ARacecar::ZoomCamera);
 }
 
 void ARacecar::Throttle(float Throw)
@@ -224,7 +227,7 @@ void ARacecar::Steer(float Throw)
 
 void ARacecar::LookUp(float Throw)
 {
-	if (Throw != 0)
+	if (Throw != 0.f)
 	{
 		FRotator NewRotation = SpringArm->GetRelativeRotation();
 		NewRotation.Pitch += Throw * MouseMoveSensitivity;
@@ -234,11 +237,20 @@ void ARacecar::LookUp(float Throw)
 
 void ARacecar::LookRight(float Throw)
 {
-	if (Throw != 0)
+	if (Throw != 0.f)
 	{
 		FRotator NewRotation = Gimbal->GetComponentRotation();
 		NewRotation.Yaw += Throw * MouseMoveSensitivity;
 		Gimbal->SetWorldRotation(NewRotation);
+	}
+}
+
+void ARacecar::ZoomCamera(float Throw)
+{
+	if (Throw != 0.f)
+	{
+		SpringArm->TargetArmLength += Throw * MouseScrollSensitivity;
+		SpringArm->TargetArmLength = FMath::Max(SpringArm->TargetArmLength, 1.f);
 	}
 }
 

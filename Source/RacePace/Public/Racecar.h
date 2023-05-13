@@ -59,6 +59,8 @@ private:
 	void LookUp(float Throw);
 	void LookRight(float Throw);
 
+	void ZoomCamera(float Throw);
+
 	int32 ClampGear(const int32 Gear) const;
 
 	void CheckReverseLights(const int32 TargetGear);
@@ -75,6 +77,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 		float MouseMoveSensitivity;
+	UPROPERTY(EditDefaultsOnly)
+		float MouseScrollSensitivity;
 
 	URacecarUIController* RacecarUIController;
 
