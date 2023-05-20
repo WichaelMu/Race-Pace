@@ -79,6 +79,7 @@ private:
 		float MouseMoveSensitivity;
 	UPROPERTY(EditDefaultsOnly)
 		float MouseScrollSensitivity;
+	float DesiredArmLength;
 
 	URacecarUIController* RacecarUIController;
 

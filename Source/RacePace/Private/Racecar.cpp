@@ -39,7 +39,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	SpringArm->SetupAttachment(Gimbal, NAME_None);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	SpringArm->TargetArmLength = 1000.f;
+	DesiredArmLength = 1000.f;
+	SpringArm->TargetArmLength = DesiredArmLength;
 	SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 	SpringArm->SetRelativeRotation(FRotator(-20.f, 0, 0.f));
 	SpringArm->bEnableCameraLag = true;
@@ -146,7 +147,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	}
 
 	MouseMoveSensitivity = 5.f;
-	MouseScrollSensitivity = 5.f;
+	MouseScrollSensitivity = 15.f;
 
 	RacecarUIController = CreateDefaultSubobject<URacecarUIController>(TEXT("Racecar UI Controller"));
 	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
@@ -249,9 +250,11 @@ void ARacecar::ZoomCamera(float Throw)
 {
 	if (Throw != 0.f)
 	{
-		SpringArm->TargetArmLength += Throw * MouseScrollSensitivity;
-		SpringArm->TargetArmLength = FMath::Max(SpringArm->TargetArmLength, 1.f);
+		DesiredArmLength += Throw * MouseScrollSensitivity;
 	}
+
+	float MaxArmLength = FMath::Max(DesiredArmLength, 1.f);
+	SpringArm->TargetArmLength = FMath::Lerp(SpringArm->TargetArmLength, MaxArmLength, GetWorld()->GetDeltaSeconds() * 3.f);
 }
 
 ARacepacePlayer* ARacecar::GetRacepacePlayerController()
