@@ -78,7 +78,6 @@ void UPersonalisedColours::ActivateColour(const bool& bInActive, const int32& Ac
 {
 	if (ActivatableColours.Num() == 0)
 	{
-		L("NONE?")
 		return;
 	}
 
