@@ -42,7 +42,8 @@ public:
 
 	ARacepacePlayer* GetRacepacePlayerController();
 
-	int32 GetSpeed() const;
+	UFUNCTION(BlueprintCallable)
+		int32 GetSpeed() const;
 	int32 GetRPM() const;
 	int32 GetGear(bool bGetTargetGearInstead = false) const;
 	FString GetGearString(bool bGetTargetGearInstead = false) const;
