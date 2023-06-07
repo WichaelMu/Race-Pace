@@ -148,6 +148,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 
 	MouseMoveSensitivity = 5.f;
 	MouseScrollSensitivity = 15.f;
+	EngineIdleThrottleInput = .05f;
 
 	RacecarUIController = CreateDefaultSubobject<URacecarUIController>(TEXT("Racecar UI Controller"));
 	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
@@ -178,6 +179,11 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ARacecar::Throttle(float Throw)
 {
+	if (Throw == 0.f && EngineIdleThrottleInput != 0.f && GetGear(true) != 0)
+	{
+		Throw = EngineIdleThrottleInput;
+	}
+
 	GetVehicleMovement()->SetThrottleInput(Throw);
 }
 

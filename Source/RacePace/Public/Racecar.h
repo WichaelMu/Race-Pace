@@ -50,8 +50,10 @@ public:
 
 private:
 
-	void ShiftUp();
-	void ShiftDown();
+	UFUNCTION(BlueprintCallable)
+		void ShiftUp();
+	UFUNCTION(BlueprintCallable)
+		void ShiftDown();
 
 	void Throttle(float Throw);
 	void Brake(float Throw);
@@ -81,6 +83,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 		float MouseScrollSensitivity;
 	float DesiredArmLength;
+
+	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = "0.0", UIMin = "0.0", ClampMax = "1.0", UIMax = "1.0"))
+		float EngineIdleThrottleInput;
 
 	URacecarUIController* RacecarUIController;
 
