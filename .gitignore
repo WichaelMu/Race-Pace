@@ -73,8 +73,12 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
+*~
+*.swp
+
 Content/StarterContent/*
 Content/Megascans/*
 Content/EuropeanBeech/*
 F122_UE5.uasset
 Audi_BLEND.uasset
+McLarenSenna.uasset
