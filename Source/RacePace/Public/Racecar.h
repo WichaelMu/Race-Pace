@@ -91,4 +91,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Personalisation)
 		UPersonalisedColours* PersonalisedColours;
+
+	UPROPERTY(EditDefaultsOnly)
+		FRuntimeFloatCurve AntiLockBrakingCurve;
 };

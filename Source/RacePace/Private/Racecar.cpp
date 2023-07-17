@@ -146,6 +146,9 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 		Physics->SetSimulatePhysics(true);
 	}
 
+	AntiLockBrakingCurve.GetRichCurve()->AddKey(0.f, .2f);
+	AntiLockBrakingCurve.GetRichCurve()->AddKey(80.f, 1.f);
+
 	MouseMoveSensitivity = 5.f;
 	MouseScrollSensitivity = 15.f;
 	EngineIdleThrottleInput = .05f;
@@ -189,6 +192,13 @@ void ARacecar::Throttle(float Throw)
 
 void ARacecar::Brake(float Throw)
 {
+	if (Throw > .001f && GetGear(false) == -1)
+	{
+		int32 Kmph = GetSpeed();
+		float BrakeInput = AntiLockBrakingCurve.GetRichCurve()->Eval(Kmph);
+		Throw = FMath::Clamp(BrakeInput, 0.f, 1.f);
+	}
+
 	GetVehicleMovement()->SetBrakeInput(Throw);
 
 	if (PersonalisedColours)
