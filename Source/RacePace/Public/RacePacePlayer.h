@@ -4,9 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-
-#include "RacePacePlayer.generated.h"
-
+#include "RacepacePlayer.generated.h"
 
 class URacecarUIController;
 
@@ -14,13 +12,13 @@ class URacecarUIController;
  * 
  */
 UCLASS()
-class RACEPACE_API ARacePacePlayer : public APlayerController
+class RACEPACE_API ARacepacePlayer : public APlayerController
 {
 	GENERATED_BODY()
 
 public:
 
-	ARacePacePlayer();
+	ARacepacePlayer();
 
 
 protected:
@@ -30,14 +28,15 @@ protected:
 
 public:
 
-	void AddLapTime(const float& NewLapTime);
+	void AddLapTime(const float NewLapTime);
 	FORCEINLINE TArray<float> GetLapTimes() const;
+	float GetBestLapTime() const;
 	float GetLastLapTime() const;
 	void ClearLapTimes();
 
 private:
 
-	UPROPERTY(VisibleAnywhere, Category="Lap Records")
+	UPROPERTY(VisibleAnywhere, Category = "Lap Records")
 		TArray<float> LapTimes;
 
 };

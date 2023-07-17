@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "RacecarUI.h"
 
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
@@ -16,18 +16,18 @@
 UPROPERTY(BlueprintReadWrite) \
 UTextBlock* VarName;\
 
-class ARacePacePlayer;
+class ARacepacePlayer;
 class ARacecar;
 
 class UCanvasPanelSlot;
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RACEPACE_API URacecarUIController : public UActorComponent
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class RACEPACE_API URacecarUIController : public URacecarUI
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	URacecarUIController();
 
@@ -37,7 +37,7 @@ protected:
 	virtual void BeginPlay() override;
 
 
-public:	
+public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -48,12 +48,15 @@ public:
 	void SetLapTime(const FString& InTime);
 	void SetBestLapTime(const FString& InBestTime);
 	void SetLastLapTime(const FString& InLastLapTime);
+	FORCEINLINE void SetLapTime(const float InTime);
+	FORCEINLINE void SetBestLapTime(const float InBestTime);
+	FORCEINLINE void SetLastLapTime(const float InLastLapTime);
 	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime);
 
 	// Dashboard Functions.
-	void SetSpeed(const int32& InKMPH);
-	void SetRPM(const int32& InRPM);
-	void SetGear(const FString& InGear);
+	void SetSpeed(const int32 InKMPH);
+	void SetRPM(const int32 InRPM);
+	void SetGear(const FString InGear);
 
 public:
 
@@ -61,15 +64,17 @@ public:
 	TSubclassOf<UUserWidget> DashboardHUDWidget;
 
 	// Lap Time UI Elements.
-	ADD_HUD_ELEMENT(TimingText)
-	ADD_HUD_ELEMENT(BestTimeText)
-	ADD_HUD_ELEMENT(LapDeltaText)
-	ADD_HUD_ELEMENT(LastLapTimeText)
+	ADD_HUD_ELEMENT(TimingText);
+	ADD_HUD_ELEMENT(BestTimeText);
+	ADD_HUD_ELEMENT(LapDeltaText);
+	ADD_HUD_ELEMENT(LastLapTimeText);
 
 	// Dashboard UI Elements.
-	ADD_HUD_ELEMENT(KMPHSpeedText)
-	ADD_HUD_ELEMENT(GearText)
-	ADD_HUD_ELEMENT(RPMText)
+	ADD_HUD_ELEMENT(KMPHSpeedText);
+	ADD_HUD_ELEMENT(GearText);
+	ADD_HUD_ELEMENT(RPMText);
+	ADD_HUD_ELEMENT(ShiftIndicator);
+
 	UImage* RPMCurrent;
 	UCanvasPanelSlot* RPMCurrentSlot;
 	UCanvasPanelSlot* RPMTextSlot;
@@ -78,24 +83,30 @@ public:
 	const FSlateColor NegativeDeltaColour = FSlateColor(FLinearColor(FColor(255.f, 68.f, 68.f)));
 	const FSlateColor PositiveDeltaGreen = FSlateColor(FLinearColor(FColor(68.f, 255.f, 68.f)));
 
-		
+
 protected:
 
 	UUserWidget* RacepacePlayerWidget;
 
 public:
 
-	UPROPERTY(VisibleAnywhere, Category="Racecar UI")
-		ARacecar* Racecar;
-	UPROPERTY(VisibleAnywhere, Category="Racecar UI")
-		ARacePacePlayer* RacepacePlayer;
 	ARacecar* GetRacecar() const;
 	UUserWidget* GetRacepaceWidget() const;
 
 private:
 
-	void CalculateRPMGraphics(const int32& RPM);
+	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);
 
 	static float CurveFunction(const float& Ratio, const float& Scalar);
 
+
+private:
+
+	UPROPERTY(EditDefaultsOnly)
+		FString ShiftUpText;
+	float RevUpRPM;
+	bool bShouldShowDownShiftIndicator;
+
 };
+
+#undef ADD_HUD_ELEMENT

@@ -2,13 +2,13 @@
 
 using UnrealBuildTool;
 
-public class RacePace : ModuleRules
+public class Racepace : ModuleRules
 {
-	public RacePace(ReadOnlyTargetRules Target) : base(Target)
+	public Racepace(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "PhysXVehicles" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

@@ -3,28 +3,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WheeledVehicle.h"
+#include "WheeledVehiclePawn.h"
 #include "Racecar.generated.h"
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
-
-class USkeletalMeshComponent;
 class USpringArmComponent;
-class UWheeledVehicleMovementComponent4W;
 class UCameraComponent;
+class USceneComponent;
 
+class ARacepacePlayer;
 class URacecarUIController;
-class ULapTimer;
-class UDashboardHUD;
+class UDashboard;
+
 class UPersonalisedColours;
 
-class UDashboard;
+#define CHAOS_VEHICLE(Racecar) Cast<UChaosWheeledVehicleMovementComponent>((Racecar)->GetVehicleMovement())
 
 /**
  *
  */
 UCLASS()
-class RACEPACE_API ARacecar : public AWheeledVehicle
+class RACEPACE_API ARacecar : public AWheeledVehiclePawn
 {
 	GENERATED_BODY()
 
@@ -34,76 +32,76 @@ public:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
+
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Engine)
-		UWheeledVehicleMovementComponent4W* Engine;
+	UDashboard* Dashboard;
+	ARacepacePlayer* RacepacePlayer;
 
-	UPROPERTY(VisibleAnywhere)
-		ULapTimer* LapTimingComponent;
-	UPROPERTY(VisibleAnywhere)
-		UDashboardHUD* DashboardHUDComponent;
+	UPROPERTY(EditAnywhere, Category = UI)
+		URacecarUIController* RacecarUIController;
 
-	UPROPERTY(VisibleAnywhere)
-		UPersonalisedColours* PersonalisedColourComponent;
+public:
 
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		FORCEINLINE int32 GetRPM() const;
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		FORCEINLINE int32 GetSpeed() const;
-	UFUNCTION(BlueprintCallable, Category = Dashboard)
-		FORCEINLINE int32 GetCurrentGear() const;
+	ARacepacePlayer* GetRacepacePlayerController();
+	FORCEINLINE void StartLap(const float StartTime);
+	FORCEINLINE void StopLap();
 
 	UFUNCTION(BlueprintCallable)
-		ARacePacePlayer* GetRacepacePlayerController();
+		int32 GetSpeed() const;
+	int32 GetRPM() const;
+	int32 GetGear(bool bGetTargetGearInstead = false) const;
+	FString GetGearString(bool bGetTargetGearInstead = false) const;
+
+public:
+
+	FORCEINLINE bool HasLapStarted(float& LapTime) const;
 
 private:
+
+	UFUNCTION(BlueprintCallable)
+		void ShiftUp();
+	UFUNCTION(BlueprintCallable)
+		void ShiftDown();
 
 	void Throttle(float Throw);
 	void Brake(float Throw);
 	void Steer(float Throw);
 
-	/** How much bias should be applied when steering? */
-	UPROPERTY(EditAnywhere, Category = Steering)
-		float RearDiffBias;
-	
 	void LookUp(float Throw);
 	void LookRight(float Throw);
 
-	void AdjustZoom(float Throw);
+	void ZoomCamera(float Throw);
 
-	void ShiftDown();
-	void ShiftUp();
+	int32 ClampGear(const int32 Gear) const;
 
+	void CheckReverseLights(const int32 TargetGear);
 
 private:
-
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
-		USkeletalMeshComponent* Chassis;
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		USpringArmComponent* SpringArm;
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		UCameraComponent* Camera;
 
-	UPROPERTY(EditAnywhere, Category = Camera)
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+		USceneComponent* Gimbal;
+
+	UPROPERTY(EditDefaultsOnly)
 		float MouseMoveSensitivity;
-	UPROPERTY(EditAnywhere, Category = Camera)
-		float ScrollZoomSensitivity;
+	UPROPERTY(EditDefaultsOnly)
+		float MouseScrollSensitivity;
+	float DesiredArmLength;
 
-	UPROPERTY(EditAnywhere, Category = RollCorrection)
-		bool bAcceptRollCorrection;
+	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = "0.0", UIMin = "0.0", ClampMax = "1.0", UIMax = "1.0"))
+		float EngineIdleThrottleInput;
 
-	float BaseMass;
+	UPROPERTY(EditAnywhere, Category = Personalisation)
+		UPersonalisedColours* PersonalisedColours;
 
-	URacecarUIController* RacecarUIController;
-	ARacePacePlayer* RacepacePlayer;
+	UPROPERTY(EditDefaultsOnly)
+		FRuntimeFloatCurve AntiLockBrakingCurve;
 
-private:
-
-	int32 ClampGear(const int32& Gear) const;
-	FORCEINLINE void CheckReverseLights(const int32& Gear);
+	float LapStartTime;
+	bool bLapHasStarted;
 };
-
-
-PRAGMA_ENABLE_DEPRECATION_WARNINGS

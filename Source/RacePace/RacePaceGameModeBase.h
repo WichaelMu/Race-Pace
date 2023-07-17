@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "RacePaceGameModeBase.generated.h"
+#include "RacepaceGameModeBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class RACEPACE_API ARacePaceGameModeBase : public AGameModeBase
+class RACEPACE_API ARacepaceGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
