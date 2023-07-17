@@ -38,15 +38,24 @@ public:
 	UDashboard* Dashboard;
 	ARacepacePlayer* RacepacePlayer;
 
+	UPROPERTY(EditAnywhere, Category = UI)
+		URacecarUIController* RacecarUIController;
+
 public:
 
 	ARacepacePlayer* GetRacepacePlayerController();
+	FORCEINLINE void StartLap(const float StartTime);
+	FORCEINLINE void StopLap();
 
 	UFUNCTION(BlueprintCallable)
 		int32 GetSpeed() const;
 	int32 GetRPM() const;
 	int32 GetGear(bool bGetTargetGearInstead = false) const;
 	FString GetGearString(bool bGetTargetGearInstead = false) const;
+
+public:
+
+	FORCEINLINE bool HasLapStarted(float& LapTime) const;
 
 private:
 
@@ -87,12 +96,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = "0.0", UIMin = "0.0", ClampMax = "1.0", UIMax = "1.0"))
 		float EngineIdleThrottleInput;
 
-	UPROPERTY(EditAnywhere, Category = UI)
-		URacecarUIController* RacecarUIController;
-
 	UPROPERTY(EditAnywhere, Category = Personalisation)
 		UPersonalisedColours* PersonalisedColours;
 
 	UPROPERTY(EditDefaultsOnly)
 		FRuntimeFloatCurve AntiLockBrakingCurve;
+
+	float LapStartTime;
+	bool bLapHasStarted;
 };

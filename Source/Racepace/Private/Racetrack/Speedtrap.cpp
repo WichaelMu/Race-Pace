@@ -21,7 +21,7 @@ void ASpeedtrap::BeginPlay()
 
 }
 
-void ASpeedtrap::Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+IMPLEMENT_ENTER_FUNCTION(ASpeedtrap)
 {
 	if (const ARacecar* Racecar = CastToRacecar(OtherActor))
 	{

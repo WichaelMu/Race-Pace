@@ -14,20 +14,32 @@ void ARacepacePlayer::BeginPlay()
 	// ...
 }
 
-void ARacepacePlayer::AddLapTime(const float& NewLapTime)
+void ARacepacePlayer::AddLapTime(const float NewLapTime)
 {
+	LapTimes.Add(NewLapTime);
 }
 
 TArray<float> ARacepacePlayer::GetLapTimes() const
 {
-	return TArray<float>();
+	return LapTimes;
+}
+
+float ARacepacePlayer::GetBestLapTime() const
+{
+	if (LapTimes.Num() == 0)
+	{
+		return 0.f;
+	}
+
+	return FMath::Min(LapTimes);
 }
 
 float ARacepacePlayer::GetLastLapTime() const
 {
-	return 0.0f;
+	return LapTimes.Last();
 }
 
 void ARacepacePlayer::ClearLapTimes()
 {
+	LapTimes.Empty();
 }

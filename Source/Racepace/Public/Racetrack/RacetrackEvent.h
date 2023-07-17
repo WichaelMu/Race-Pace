@@ -12,6 +12,8 @@ class UBoxComponent;
 #define OVERRIDE_ENTER_FUNCTION() UFUNCTION(BlueprintCallable) \
 	virtual void Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override; \
 
+#define IMPLEMENT_ENTER_FUNCTION(ClassName) void ClassName::Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+
 UCLASS()
 class RACEPACE_API ARacetrackEvent : public AActor
 {
@@ -30,7 +32,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 		virtual void Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	FORCEINLINE const ARacecar* CastToRacecar(const AActor* OtherActor) const;
+	FORCEINLINE ARacecar* CastToRacecar(AActor* OtherActor);
 
 protected:
 

@@ -38,6 +38,9 @@ public:
 	FORCEINLINE void SetPlayer(ARacepacePlayer* InPlayer);
 	ARacepacePlayer* GetPlayer();
 
+	void DecoratedLapTime(const float RawLapTime, int32& Minutes, int32& Seconds, int32& Milliseconds) const;
+	FString DecoratedLapTime(const float RawLapTime) const;
+
 
 private:
 

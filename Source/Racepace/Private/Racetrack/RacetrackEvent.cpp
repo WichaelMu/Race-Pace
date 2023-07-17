@@ -27,7 +27,7 @@ void ARacetrackEvent::Enter(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 }
 
-const ARacecar* ARacetrackEvent::CastToRacecar(const AActor* OtherActor) const
+ARacecar* ARacetrackEvent::CastToRacecar(AActor* OtherActor)
 {
 	return Cast<ARacecar>(OtherActor);
 }

@@ -22,7 +22,7 @@ void URacecarUI::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+
 }
 
 
@@ -55,5 +55,24 @@ ARacepacePlayer* URacecarUI::GetPlayer()
 	}
 
 	return Player;
+}
+
+void URacecarUI::DecoratedLapTime(const float RawLapTime, int32& Minutes, int32& Seconds, int32& Milliseconds) const
+{
+	Seconds = (int)RawLapTime;
+
+	Milliseconds = (RawLapTime - Seconds) * 1000;
+
+	Minutes = (int)(Seconds / 60);
+
+	Seconds %= 60;
+}
+
+FString URacecarUI::DecoratedLapTime(const float RawLapTime) const
+{
+	int32 Minutes, Seconds, Milliseconds;
+	DecoratedLapTime(RawLapTime, Minutes, Seconds, Milliseconds);
+
+	return FString::Printf(TEXT("%i:%02i:%03i"), Minutes, Seconds, Milliseconds);
 }
 

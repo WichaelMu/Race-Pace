@@ -286,6 +286,18 @@ ARacepacePlayer* ARacecar::GetRacepacePlayerController()
 	return RacepacePlayer;
 }
 
+void ARacecar::StartLap(const float StartTime)
+{
+	LapStartTime = StartTime; bLapHasStarted = true;
+}
+
+void ARacecar::StopLap()
+{
+	LapStartTime = 0.f;
+	bLapHasStarted = false;
+}
+
+
 void ARacecar::ShiftUp()
 {
 	int32 CurrentGear = GetGear();
@@ -366,6 +378,12 @@ FString ARacecar::GetGearString(bool bGetTargetGearInstead) const
 	}
 
 	return FString::Printf(TEXT("%i"), Gear);
+}
+
+bool ARacecar::HasLapStarted(float& LapTime) const
+{
+	LapTime = LapStartTime;
+	return bLapHasStarted;
 }
 
 int32 ARacecar::ClampGear(const int32 Gear) const

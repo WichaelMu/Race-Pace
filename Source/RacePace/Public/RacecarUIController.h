@@ -48,6 +48,9 @@ public:
 	void SetLapTime(const FString& InTime);
 	void SetBestLapTime(const FString& InBestTime);
 	void SetLastLapTime(const FString& InLastLapTime);
+	FORCEINLINE void SetLapTime(const float InTime);
+	FORCEINLINE void SetBestLapTime(const float InBestTime);
+	FORCEINLINE void SetLastLapTime(const float InLastLapTime);
 	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime);
 
 	// Dashboard Functions.

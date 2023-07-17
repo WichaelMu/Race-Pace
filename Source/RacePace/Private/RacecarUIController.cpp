@@ -97,6 +97,15 @@ void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, F
 		const int32 RPM = Racecar->GetRPM();
 		SetRPM(RPM);
 		CalculateRPMGraphics(RPM, DeltaTime);
+
+		float StartLapTime;
+		if (Racecar->HasLapStarted(StartLapTime))
+		{
+			if (UWorld* World = GetWorld())
+			{
+				SetLapTime(World->TimeSince(StartLapTime));
+			}
+		}
 	}
 }
 
@@ -128,6 +137,21 @@ void URacecarUIController::SetLastLapTime(const FString& InLastLapTime)
 	}
 }
 
+void URacecarUIController::SetLapTime(const float InTime)
+{
+	SetLapTime(DecoratedLapTime(InTime));
+}
+
+void URacecarUIController::SetBestLapTime(const float InBestTime)
+{
+	SetBestLapTime(DecoratedLapTime(InBestTime));
+}
+
+void URacecarUIController::SetLastLapTime(const float InLastLapTime)
+{
+	SetLastLapTime(DecoratedLapTime(InLastLapTime));
+}
+
 void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const float& BestTime)
 {
 	if (LapDeltaText)
@@ -140,7 +164,7 @@ void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const fl
 		Result += bIsBehind
 			? FString("+")
 			: FString("-");
-		//Result += ULapTimer::GetTime(FMath::Abs(Delta));
+		Result += DecoratedLapTime(FMath::Abs(Delta));
 
 		LapDeltaText->SetText(FText::FromString(Result));
 

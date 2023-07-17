@@ -28,8 +28,9 @@ protected:
 
 public:
 
-	void AddLapTime(const float& NewLapTime);
+	void AddLapTime(const float NewLapTime);
 	FORCEINLINE TArray<float> GetLapTimes() const;
+	float GetBestLapTime() const;
 	float GetLastLapTime() const;
 	void ClearLapTimes();
 
