@@ -87,7 +87,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = "0.0", UIMin = "0.0", ClampMax = "1.0", UIMax = "1.0"))
 		float EngineIdleThrottleInput;
 
-	URacecarUIController* RacecarUIController;
+	UPROPERTY(EditAnywhere, Category = UI)
+		URacecarUIController* RacecarUIController;
 
 	UPROPERTY(EditAnywhere, Category = Personalisation)
 		UPersonalisedColours* PersonalisedColours;

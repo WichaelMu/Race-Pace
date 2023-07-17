@@ -324,6 +324,7 @@ int32 ARacecar::GetSpeed() const
 int32 ARacecar::GetRPM() const
 {
 	const int32 RPM = FMath::RoundToInt(CHAOS_VEHICLE()->GetEngineRotationSpeed());
+
 #if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
 	{

@@ -25,6 +25,9 @@ URacecarUIController::URacecarUIController()
 	{
 		DashboardHUDWidget = MainWidget.Class;
 	}
+
+	ShiftUpText = TEXT("SHIFT ^");
+	RevUpRPM = 0.f;
 }
 
 
@@ -71,10 +74,17 @@ void URacecarUIController::BeginPlay()
 		RPMCurrentSlot = Cast<UCanvasPanelSlot>(RPMCurrent->Slot);
 		RPMTextSlot = Cast<UCanvasPanelSlot>(RPMText->Slot);
 
+		ShiftIndicator = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("ShiftIndicator")));
+
 		RacepacePlayerWidget->AddToViewport();
 	}
 
 	SetGear(Racecar->GetGearString());
+
+	if (UChaosWheeledVehicleMovementComponent* Engine = CHAOS_VEHICLE(Racecar))
+	{
+		RevUpRPM = Engine->TransmissionSetup.ChangeUpRPM;
+	}
 }
 
 void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -158,6 +168,18 @@ void URacecarUIController::SetRPM(const int32 InRPM)
 	if (RPMText)
 	{
 		RPMText->SetText(FText::FromString(FString::Printf(TEXT("%i"), InRPM)));
+	}
+
+	if (ShiftIndicator && Racecar->GetGear() != -1)
+	{
+		if (InRPM > RevUpRPM)
+		{
+			ShiftIndicator->SetText(FText::FromString(ShiftUpText));
+		}
+		else
+		{
+			ShiftIndicator->SetText(FText::FromString(TEXT("")));
+		}
 	}
 }
 

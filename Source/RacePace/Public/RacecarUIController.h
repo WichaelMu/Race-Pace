@@ -70,6 +70,8 @@ public:
 	ADD_HUD_ELEMENT(KMPHSpeedText);
 	ADD_HUD_ELEMENT(GearText);
 	ADD_HUD_ELEMENT(RPMText);
+	ADD_HUD_ELEMENT(ShiftIndicator);
+
 	UImage* RPMCurrent;
 	UCanvasPanelSlot* RPMCurrentSlot;
 	UCanvasPanelSlot* RPMTextSlot;
@@ -93,6 +95,14 @@ private:
 	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);
 
 	static float CurveFunction(const float& Ratio, const float& Scalar);
+
+
+private:
+
+	UPROPERTY(EditDefaultsOnly)
+		FString ShiftUpText;
+	float RevUpRPM;
+	bool bShouldShowDownShiftIndicator;
 
 };
 
