@@ -48,7 +48,7 @@ ARacepacePlayer* URacecarUI::GetPlayer()
 
 	if (Racecar)
 	{
-		if (ARacepacePlayer* RacepacePlayer = Cast<ARacepacePlayer>(Racecar->GetController()))
+		if (ARacepacePlayer* RacepacePlayer = Racecar->GetRacepacePlayerController())
 		{
 			Player = RacepacePlayer;
 		}
