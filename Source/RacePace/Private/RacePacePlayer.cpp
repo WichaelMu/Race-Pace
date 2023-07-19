@@ -43,3 +43,22 @@ void ARacepacePlayer::ClearLapTimes()
 {
 	LapTimes.Empty();
 }
+
+
+bool ARacepacePlayer::HasLapStarted(float& LapTime) const
+{
+	LapTime = LapStartTime;
+	return bLapHasStarted;
+}
+
+void ARacepacePlayer::StartLap(const float StartTime)
+{
+	LapStartTime = StartTime; bLapHasStarted = true;
+}
+
+void ARacepacePlayer::StopLap()
+{
+	LapStartTime = 0.f;
+	bLapHasStarted = false;
+}
+

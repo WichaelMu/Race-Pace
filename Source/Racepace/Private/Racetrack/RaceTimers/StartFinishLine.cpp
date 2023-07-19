@@ -27,6 +27,9 @@ IMPLEMENT_ENTER_FUNCTION(AStartFinishLine)
 
 void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 {
+	ARacepacePlayer* Player = Racecar->GetRacepacePlayerController();
+	CNULLF(Player, "%s has no valid ARacepacePlayer", *Racecar->GetName())
+
 	// This Racecar has just ended a lap.
 	if (Grid.Contains(Racecar))
 	{
@@ -36,27 +39,24 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 		{
 			UI->SetLastLapTime(LapTime);
 
-			if (ARacepacePlayer* Player = Racecar->GetRacepacePlayerController())
-			{
-				float BestTime = Player->GetBestLapTime();
-				Player->AddLapTime(LapTime);
+			float BestTime = Player->GetBestLapTime();
+			Player->AddLapTime(LapTime);
 
-				if (BestTime != 0.f)
-				{
-					UI->CompareLapToBestDeltas(LapTime, BestTime);
-					UI->SetBestLapTime(BestTime);
-				}
+			if (BestTime != 0.f)
+			{
+				UI->CompareLapToBestDeltas(LapTime, BestTime);
+				UI->SetBestLapTime(BestTime);
 			}
 		}
 
-		Racecar->StopLap();
+		Player->StopLap();
 		Grid.Remove(Racecar);
 	}
 	else
 	{
 		StartTime = EnterTime;
 
-		Racecar->StartLap(StartTime);
+		Player->StartLap(StartTime);
 
 		Grid.Add(Racecar, ERacetrackLapType::Hotlap);
 	}

@@ -36,7 +36,6 @@ public:
 public:
 
 	UDashboard* Dashboard;
-	ARacepacePlayer* RacepacePlayer;
 
 	UPROPERTY(EditAnywhere, Category = UI)
 		URacecarUIController* RacecarUIController;
@@ -44,8 +43,6 @@ public:
 public:
 
 	ARacepacePlayer* GetRacepacePlayerController();
-	FORCEINLINE void StartLap(const float StartTime);
-	FORCEINLINE void StopLap();
 
 	UFUNCTION(BlueprintCallable)
 		int32 GetSpeed() const;
@@ -54,8 +51,6 @@ public:
 	FString GetGearString(bool bGetTargetGearInstead = false) const;
 
 public:
-
-	FORCEINLINE bool HasLapStarted(float& LapTime) const;
 
 private:
 
@@ -102,6 +97,5 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 		FRuntimeFloatCurve AntiLockBrakingCurve;
 
-	float LapStartTime;
-	bool bLapHasStarted;
+	ARacepacePlayer* RacepacePlayer;
 };

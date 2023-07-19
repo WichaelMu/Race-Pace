@@ -34,9 +34,16 @@ public:
 	float GetLastLapTime() const;
 	void ClearLapTimes();
 
+	FORCEINLINE bool HasLapStarted(float& LapTime) const;
+	FORCEINLINE void StartLap(const float StartTime);
+	FORCEINLINE void StopLap();
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Lap Records")
 		TArray<float> LapTimes;
+
+	float LapStartTime;
+	bool bLapHasStarted;
 
 };

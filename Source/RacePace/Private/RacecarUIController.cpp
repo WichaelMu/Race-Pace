@@ -99,7 +99,7 @@ void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, F
 		CalculateRPMGraphics(RPM, DeltaTime);
 
 		float StartLapTime;
-		if (Racecar->HasLapStarted(StartLapTime))
+		if (GetPlayer()->HasLapStarted(StartLapTime))
 		{
 			if (UWorld* World = GetWorld())
 			{
