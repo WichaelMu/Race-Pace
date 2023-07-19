@@ -22,7 +22,6 @@
 
 #define SHOW_ENGINE_ONSCREEN_MESSAGES 0
 
-#define CHAOS_VEHICLE() Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement())
 #define ADD_GEAR_RATIO(Ratio) Engine->TransmissionSetup.ForwardGearRatios.Add(Ratio)
 #define ADD_TORQUE_CURVE(RPM, Torque) Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(RPM, Torque)
 #define ADD_STEERING_CURVE(KmpH, Ratio) Engine->SteeringSetup.SteeringCurve.GetRichCurve()->AddKey(KmpH, Ratio)
@@ -192,7 +191,7 @@ void ARacecar::Throttle(float Throw)
 
 void ARacecar::Brake(float Throw)
 {
-	if (Throw > .001f && GetGear(false) == -1)
+	if (Throw > .001f && GetSpeed(false) < 0)
 	{
 		int32 Kmph = GetSpeed();
 		float BrakeInput = AntiLockBrakingCurve.GetRichCurve()->Eval(Kmph);
@@ -217,7 +216,6 @@ void ARacecar::Brake(float Throw)
 			PersonalisedColours->ActivateColour(!bThrowIsZero, 1);
 		}
 	}
-
 }
 
 void ARacecar::Steer(float Throw)
@@ -299,6 +297,11 @@ void ARacecar::ShiftUp()
 
 void ARacecar::ShiftDown()
 {
+	if (GetRPM() >= CHAOS_VEHICLE(this)->TransmissionSetup.ChangeUpRPM)
+	{
+		return;
+	}
+
 	int32 CurrentGear = GetGear();
 	int32 TargetGear = ClampGear(CurrentGear - 1);
 	GetVehicleMovement()->SetTargetGear(ClampGear(TargetGear), true);
@@ -307,7 +310,7 @@ void ARacecar::ShiftDown()
 	CheckReverseLights(GetGear(true));
 }
 
-int32 ARacecar::GetSpeed() const
+int32 ARacecar::GetSpeed(bool bGetAbsolute) const
 {
 	const float Speed = GetVehicleMovement()->GetForwardSpeed() * .036f;
 
@@ -319,12 +322,12 @@ int32 ARacecar::GetSpeed() const
 #endif
 
 	const int32 RoundedSpeed = FMath::RoundToInt(Speed);
-	return FMath::Abs(RoundedSpeed);
+	return bGetAbsolute ? FMath::Abs(RoundedSpeed) : RoundedSpeed;
 }
 
 int32 ARacecar::GetRPM() const
 {
-	const int32 RPM = FMath::RoundToInt(CHAOS_VEHICLE()->GetEngineRotationSpeed());
+	const int32 RPM = FMath::RoundToInt(CHAOS_VEHICLE(this)->GetEngineRotationSpeed());
 
 #if SHOW_ENGINE_ONSCREEN_MESSAGES
 	if (GEngine)
@@ -371,7 +374,7 @@ FString ARacecar::GetGearString(bool bGetTargetGearInstead) const
 
 int32 ARacecar::ClampGear(const int32 Gear) const
 {
-	int32 Max = CHAOS_VEHICLE()->TransmissionSetup.ForwardGearRatios.Num() - 1;
+	int32 Max = CHAOS_VEHICLE(this)->TransmissionSetup.ForwardGearRatios.Num() - 1;
 	return FMath::Clamp<int32>(Gear, -1, Max);
 }
 
