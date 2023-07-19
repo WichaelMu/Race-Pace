@@ -20,7 +20,7 @@
 
 #include "RDefinitions.h"
 
-#define SHOW_ENGINE_ONSCREEN_MESSAGES 0
+#define SHOW_ENGINE_ONSCREEN_MESSAGES 0 && WITH_EDITOR
 
 #define ADD_GEAR_RATIO(Ratio) Engine->TransmissionSetup.ForwardGearRatios.Add(Ratio)
 #define ADD_TORQUE_CURVE(RPM, Torque) Engine->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(RPM, Torque)
@@ -181,7 +181,7 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ARacecar::Throttle(float Throw)
 {
-	if (Throw == 0.f && EngineIdleThrottleInput != 0.f && GetGear(true) != 0)
+	if (Throw == 0.f && EngineIdleThrottleInput != 0.f && GetGear(true) != 0 && GetSpeed() == 0)
 	{
 		Throw = EngineIdleThrottleInput;
 	}
@@ -297,7 +297,7 @@ void ARacecar::ShiftUp()
 
 void ARacecar::ShiftDown()
 {
-	if (GetRPM() >= CHAOS_VEHICLE(this)->TransmissionSetup.ChangeUpRPM)
+	if (GetGear() > 1 && GetRPM() >= CHAOS_VEHICLE(this)->TransmissionSetup.ChangeUpRPM)
 	{
 		return;
 	}
