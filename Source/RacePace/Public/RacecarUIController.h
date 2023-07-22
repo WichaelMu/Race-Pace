@@ -88,11 +88,6 @@ protected:
 
 	UUserWidget* RacepacePlayerWidget;
 
-public:
-
-	ARacecar* GetRacecar() const;
-	UUserWidget* GetRacepaceWidget() const;
-
 private:
 
 	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);

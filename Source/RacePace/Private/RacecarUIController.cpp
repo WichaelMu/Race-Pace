@@ -191,12 +191,14 @@ void URacecarUIController::SetRPM(const int32 InRPM)
 {
 	if (RPMText)
 	{
-		RPMText->SetText(FText::FromString(FString::Printf(TEXT("%i"), InRPM)));
+		FString Suffix = Racecar->bIsElectric ? FString(TEXT("kWh")) : FString(TEXT("RPM"));
+		RPMText->SetText(FText::FromString(FString::Printf(TEXT("%i %s"), InRPM, *Suffix)));
 	}
 
-	if (ShiftIndicator && Racecar->GetGear() != -1)
+	int32 Gear = Racecar->GetGear();
+	if (ShiftIndicator && Gear != -1)
 	{
-		if (InRPM > RevUpRPM)
+		if (InRPM > RevUpRPM && Gear < CHAOS_VEHICLE(Racecar)->TransmissionSetup.ForwardGearRatios.Num() - 1)
 		{
 			ShiftIndicator->SetText(FText::FromString(ShiftUpText));
 		}
@@ -262,8 +264,11 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 	if (RPM <= RacecarMaxRPM)
 	{
 		FVector2D RPMInterp = FMath::Vector2DInterpTo(RPMCurrentSlot->GetPosition(), RPMToGraphicPosition, DeltaTime, 7.f);
+		FVector2D RPMTextInterp;
+		RPMTextInterp.X = RPMInterp.X;
+		RPMTextInterp.Y = RPMTextSlot->GetPosition().Y;
 
-		RPMTextSlot->SetPosition(RPMInterp);
+		RPMTextSlot->SetPosition(RPMTextInterp);
 		RPMCurrentSlot->SetPosition(RPMInterp);
 	}
 }
@@ -274,16 +279,4 @@ float URacecarUIController::CurveFunction(const float& Ratio, const float& Scala
 	const float Function = 1.f + FMath::Pow(1.f - Ratio, 3.f);
 
 	return Function * Scalar;
-}
-
-
-ARacecar* URacecarUIController::GetRacecar() const
-{
-	return Racecar;
-}
-
-
-UUserWidget* URacecarUIController::GetRacepaceWidget() const
-{
-	return RacepacePlayerWidget;
 }
