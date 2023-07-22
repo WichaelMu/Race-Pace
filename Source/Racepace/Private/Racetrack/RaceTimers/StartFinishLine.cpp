@@ -99,7 +99,7 @@ void AStartFinishLine::SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, floa
 		if (BestTime != 0.f)
 		{
 			UI->CompareLapToBestDeltas(LapTime, BestTime);
-			UI->SetBestLapTime(Player->GetBestLapTime());
+			UI->SetBestLapTime(BestTime);
 		}
 	}
 }
