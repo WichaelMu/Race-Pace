@@ -2,6 +2,7 @@
 
 
 #include "Racetrack/RaceTimers/StartFinishLine.h"
+#include "Racetrack/RaceTimers/Sector.h"
 #include "Racetrack/Racetrack.h"
 #include "RacepacePlayer.h"
 #include "Racecar.h"
@@ -18,7 +19,7 @@ AStartFinishLine::AStartFinishLine()
 
 IMPLEMENT_ENTER_FUNCTION(AStartFinishLine)
 {
-	Super::Enter(OverlappedComponent, OtherActor, OtherComponent, OtherBodyIndex, bFromSweep, SweepResult);
+	CALL_PARENT_ENTER_FUNCTION();
 
 	if (ARacecar* Racecar = CastToRacecar(OtherActor))
 	{
@@ -33,10 +34,12 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 	CNULLF(Player, "%s has no valid ARacepacePlayer", *Racecar->GetName());
 
 	bool bHasPreviouslyCrossed = Grid.Contains(Racecar);
+	bool bWasLapValid = WasLapValid(Racecar);
 
 	if (bAllowContinuousLaps)
 	{
-		if (bHasPreviouslyCrossed)
+
+		if (bHasPreviouslyCrossed && bWasLapValid)
 		{
 			Player->StopLap(true);
 			SetLapUI(Racecar, Player, GetLapTime());
@@ -46,27 +49,36 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 			Grid.Add(Racecar, ERacetrackLapType::Hotlap);
 		}
 
-		StartTime = EnterTime;
-		Player->StartLap(StartTime);
+		if (bWasLapValid || !Player->HasLapStarted())
+		{
+			Player->StartLap(EnterTime);
+			StartTime = EnterTime;
+		}
 	}
 	else
 	{
 		// This Racecar has just ended a lap.
 		if (bHasPreviouslyCrossed)
 		{
-			SetLapUI(Racecar, Player, GetLapTime());
+			if (bWasLapValid)
+			{
+				Player->StopLap(false);
+				SetLapUI(Racecar, Player, GetLapTime());
 
-			Player->StopLap(false);
-			Grid.Remove(Racecar);
+				Grid.Remove(Racecar);
+			}
 		}
 		else
 		{
+			Player->StartLap(EnterTime);
 			StartTime = EnterTime;
-			Player->StartLap(StartTime);
 
 			Grid.Add(Racecar, ERacetrackLapType::Hotlap);
 		}
 	}
+
+	// Times are cleared regardless of their validity.
+	ClearSectors(Racecar);
 }
 
 float AStartFinishLine::GetLapTime() const
@@ -89,5 +101,53 @@ void AStartFinishLine::SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, floa
 			UI->CompareLapToBestDeltas(LapTime, BestTime);
 			UI->SetBestLapTime(Player->GetBestLapTime());
 		}
+	}
+}
+
+bool AStartFinishLine::WasLapValid(const ARacecar* Racecar) const
+{
+	ELapCompletionResult Result = ELapCompletionResult::SectorsNotCrossed;
+
+	if (Sectors.IsEmpty())
+	{
+		Result = ELapCompletionResult::ValidLap;
+		return true;
+	}
+
+	bool bWasCrossedSequentially = true;
+
+	for (int32 i = 0; i < Sectors.Num() - 1; ++i)
+	{
+		ASector* Sector = Sectors[i];
+		ASector* NextSector = Sectors[i + 1];
+
+		// Ensure every Sector was crossed.
+		if (!Sector->HasCrossed(Racecar))
+		{
+			LF("%s not crossed", *Sector->GetName());
+			Result = ELapCompletionResult::SectorsNotCrossed;
+
+			return false;
+		}
+
+		// Ensure Sectors were crossed in sequential order.
+		if (Sector->GetCrossTime(Racecar) > NextSector->GetCrossTime(Racecar))
+		{
+			LF("%s: %f and %s: %f not sequential", *Sector->GetName(), Sector->GetCrossTime(Racecar), *NextSector->GetName(), NextSector->GetCrossTime(Racecar));
+			Result = ELapCompletionResult::SectorsNotSequential;
+
+			return false;
+		}
+	}
+
+	// Also ensure the last Sector has also been crossed.
+	return Sectors.Last()->HasCrossed(Racecar);
+}
+
+void AStartFinishLine::ClearSectors(const ARacecar* Racecar)
+{
+	for (int32 i = 0; i < Sectors.Num(); ++i)
+	{
+		Sectors[i]->ClearTimes(Racecar);
 	}
 }

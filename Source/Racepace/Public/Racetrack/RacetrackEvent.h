@@ -14,6 +14,8 @@ class UBoxComponent;
 
 #define IMPLEMENT_ENTER_FUNCTION(ClassName) void ClassName::Enter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 
+#define CALL_PARENT_ENTER_FUNCTION() Super::Enter(OverlappedComponent, OtherActor, OtherComponent, OtherBodyIndex, bFromSweep, SweepResult) 
+
 UCLASS()
 class RACEPACE_API ARacetrackEvent : public AActor
 {
@@ -38,4 +40,13 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		UBoxComponent* Collider;
+};
+
+UENUM()
+enum ELapCompletionResult : int
+{
+	Invalid = 1,
+	SectorsNotCrossed = 2,
+	SectorsNotSequential = 4,
+	ValidLap = 8
 };

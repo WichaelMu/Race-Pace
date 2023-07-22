@@ -37,10 +37,16 @@ private:
 	float GetLapTime() const;
 	void SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, float LapTime);
 
+	bool WasLapValid(const ARacecar* Racecar) const;
+	void ClearSectors(const ARacecar* Racecar);
+
 private:
 
+	UPROPERTY(EditInstanceOnly)
+		TArray<ASector*> Sectors;
+
 	TMap<ARacecar*, ERacetrackLapType> Grid;
-	double StartTime;
+	float StartTime;
 
 	UPROPERTY(EditAnywhere)
 		bool bAllowContinuousLaps;
