@@ -34,9 +34,10 @@ public:
 	float GetLastLapTime() const;
 	void ClearLapTimes();
 
-	FORCEINLINE bool HasLapStarted(float& LapTime) const;
+	FORCEINLINE bool HasLapStarted(float& StartTime) const;
+	FORCEINLINE bool HasLapStarted() const;
 	FORCEINLINE void StartLap(const float StartTime);
-	FORCEINLINE void StopLap();
+	FORCEINLINE void StopLap(bool bContinuousLap);
 
 private:
 

@@ -12,6 +12,8 @@ AStartFinishLine::AStartFinishLine()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+
+	bAllowContinuousLaps = true;
 }
 
 IMPLEMENT_ENTER_FUNCTION(AStartFinishLine)
@@ -28,37 +30,42 @@ IMPLEMENT_ENTER_FUNCTION(AStartFinishLine)
 void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 {
 	ARacepacePlayer* Player = Racecar->GetRacepacePlayerController();
-	CNULLF(Player, "%s has no valid ARacepacePlayer", *Racecar->GetName())
+	CNULLF(Player, "%s has no valid ARacepacePlayer", *Racecar->GetName());
 
-	// This Racecar has just ended a lap.
-	if (Grid.Contains(Racecar))
+	bool bHasPreviouslyCrossed = Grid.Contains(Racecar);
+
+	if (bAllowContinuousLaps)
 	{
-		float LapTime = GetLapTime();
-
-		if (URacecarUIController* UI = Racecar->RacecarUIController)
+		if (bHasPreviouslyCrossed)
 		{
-			UI->SetLastLapTime(LapTime);
-
-			float BestTime = Player->GetBestLapTime();
-			Player->AddLapTime(LapTime);
-
-			if (BestTime != 0.f)
-			{
-				UI->CompareLapToBestDeltas(LapTime, BestTime);
-				UI->SetBestLapTime(BestTime);
-			}
+			Player->StopLap(true);
+			SetLapUI(Racecar, Player, GetLapTime());
+		}
+		else
+		{
+			Grid.Add(Racecar, ERacetrackLapType::Hotlap);
 		}
 
-		Player->StopLap();
-		Grid.Remove(Racecar);
+		StartTime = EnterTime;
+		Player->StartLap(StartTime);
 	}
 	else
 	{
-		StartTime = EnterTime;
+		// This Racecar has just ended a lap.
+		if (bHasPreviouslyCrossed)
+		{
+			SetLapUI(Racecar, Player, GetLapTime());
 
-		Player->StartLap(StartTime);
+			Player->StopLap(false);
+			Grid.Remove(Racecar);
+		}
+		else
+		{
+			StartTime = EnterTime;
+			Player->StartLap(StartTime);
 
-		Grid.Add(Racecar, ERacetrackLapType::Hotlap);
+			Grid.Add(Racecar, ERacetrackLapType::Hotlap);
+		}
 	}
 }
 
@@ -66,4 +73,21 @@ float AStartFinishLine::GetLapTime() const
 {
 	double TimeSince = GetWorld()->TimeSince(StartTime);
 	return (float)TimeSince;
+}
+
+void AStartFinishLine::SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, float LapTime)
+{
+	if (URacecarUIController* UI = Racecar->RacecarUIController)
+	{
+		UI->SetLastLapTime(LapTime);
+
+		float BestTime = Player->GetBestLapTime();
+		Player->AddLapTime(LapTime);
+
+		if (BestTime != 0.f)
+		{
+			UI->CompareLapToBestDeltas(LapTime, BestTime);
+			UI->SetBestLapTime(BestTime);
+		}
+	}
 }

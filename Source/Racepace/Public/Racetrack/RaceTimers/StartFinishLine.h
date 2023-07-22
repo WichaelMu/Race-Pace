@@ -8,6 +8,7 @@
 #include "Racetrack/Racetrack.h"
 #include "StartFinishLine.generated.h"
 
+class ARacepacePlayer;
 class ARacecar;
 
 /**
@@ -34,10 +35,14 @@ public:
 private:
 
 	float GetLapTime() const;
+	void SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, float LapTime);
 
 private:
 
 	TMap<ARacecar*, ERacetrackLapType> Grid;
 	double StartTime;
+
+	UPROPERTY(EditAnywhere)
+		bool bAllowContinuousLaps;
 
 };

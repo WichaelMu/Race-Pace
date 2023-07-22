@@ -45,20 +45,26 @@ void ARacepacePlayer::ClearLapTimes()
 }
 
 
-bool ARacepacePlayer::HasLapStarted(float& LapTime) const
+bool ARacepacePlayer::HasLapStarted(float& StartTime) const
 {
-	LapTime = LapStartTime;
+	StartTime = LapStartTime;
+	return bLapHasStarted;
+}
+
+bool ARacepacePlayer::HasLapStarted() const
+{
 	return bLapHasStarted;
 }
 
 void ARacepacePlayer::StartLap(const float StartTime)
 {
-	LapStartTime = StartTime; bLapHasStarted = true;
+	LapStartTime = StartTime;
+	bLapHasStarted = true;
 }
 
-void ARacepacePlayer::StopLap()
+void ARacepacePlayer::StopLap(bool bContinuousLap)
 {
 	LapStartTime = 0.f;
-	bLapHasStarted = false;
+	bLapHasStarted = bContinuousLap;
 }
 
