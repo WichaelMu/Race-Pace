@@ -145,6 +145,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 		Physics->SetSimulatePhysics(true);
 	}
 
+	bUseSyntheticABS = true;
+	AntiLockBrakingCurve.GetRichCurve()->AddKey(-80.f, .4f);
 	AntiLockBrakingCurve.GetRichCurve()->AddKey(0.f, .2f);
 	AntiLockBrakingCurve.GetRichCurve()->AddKey(80.f, 1.f);
 
@@ -158,6 +160,8 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	RacecarUIController->Racecar = Dashboard->Racecar = this;
 
 	PersonalisedColours = CreateDefaultSubobject<UPersonalisedColours>(TEXT("Personalised Colours"));
+
+	bIsElectric = false;
 }
 
 void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -191,9 +195,9 @@ void ARacecar::Throttle(float Throw)
 
 void ARacecar::Brake(float Throw)
 {
-	if (Throw > .001f && GetSpeed(false) < 0)
+	if (bUseSyntheticABS && Throw > .001f && GetSpeed() != 0)
 	{
-		int32 Kmph = GetSpeed();
+		int32 Kmph = GetSpeed(false);
 		float BrakeInput = AntiLockBrakingCurve.GetRichCurve()->Eval(Kmph);
 		Throw = FMath::Clamp(BrakeInput, 0.f, 1.f);
 	}

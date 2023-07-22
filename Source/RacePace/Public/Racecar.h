@@ -52,6 +52,9 @@ public:
 
 public:
 
+	UPROPERTY(EditDefaultsOnly)
+		bool bIsElectric;
+
 private:
 
 	UFUNCTION(BlueprintCallable)
@@ -93,6 +96,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Personalisation)
 		UPersonalisedColours* PersonalisedColours;
+
+	UPROPERTY(EditDefaultsOnly)
+		bool bUseSyntheticABS;
 
 	UPROPERTY(EditDefaultsOnly)
 		FRuntimeFloatCurve AntiLockBrakingCurve;

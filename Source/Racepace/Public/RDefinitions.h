@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 
 // UE_LOG with a format.
-#define LF(Format, ...) UE_LOG(LogTemp, Warning, TEXT("%s:%i - %s"), __FUNCTION__, __LINE__, *FString::Printf(TEXT(Format), __VA_ARGS__))
+#define LF(Format, ...) UE_LOG(LogTemp, Warning, TEXT("%i - %s"), __LINE__, *FString::Printf(TEXT(Format), __VA_ARGS__))
 #define G(Format, ...) __FILE__, __FUNCTION__, __LINE__, *FString::Printf(TEXT(Format), __VA_ARGS__))
 // UE_LOG a Message.
 #define L(Message) UE_LOG(LogTemp, Warning, TEXT(Message))
 
 // UE_LOG Error with a format.
-#define EF(Format, ...) UE_LOG(LogTemp, Error, TEXT("%s:%i - %s"), __FUNCTION__, __LINE__, *FString::Printf(TEXT(Format), __VA_ARGS__))
+#define EF(Format, ...) UE_LOG(LogTemp, Error, TEXT("%i - %s"), __LINE__, *FString::Printf(TEXT(Format), __VA_ARGS__))
 // UE_LOG an Error Message.
 #define E(Message) UE_LOG(LogTemp, Error, TEXT(Message))
 
