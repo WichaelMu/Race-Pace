@@ -73,6 +73,6 @@ FString URacecarUI::DecoratedLapTime(const float RawLapTime) const
 	int32 Minutes, Seconds, Milliseconds;
 	DecoratedLapTime(RawLapTime, Minutes, Seconds, Milliseconds);
 
-	return FString::Printf(TEXT("%i:%02i:%03i"), Minutes, Seconds, Milliseconds);
+	return FString::Printf(TEXT("%i:%02i.%03i"), Minutes, Seconds, Milliseconds);
 }
 
