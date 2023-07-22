@@ -2,6 +2,9 @@
 
 
 #include "RacepacePlayer.h"
+#include "Racecar.h"
+
+#include "RDefinitions.h"
 
 ARacepacePlayer::ARacepacePlayer()
 {
@@ -66,5 +69,16 @@ void ARacepacePlayer::StopLap(bool bContinuousLap)
 {
 	LapStartTime = 0.f;
 	bLapHasStarted = bContinuousLap;
+}
+
+ARacecar* ARacepacePlayer::GetRacecar() const
+{
+	if (ARacecar* Racecar = Cast<ARacecar>(GetPawn()))
+	{
+		return Racecar;
+	}
+
+	E("Controlled Pawn is not a Racecar!");
+	return nullptr;
 }
 

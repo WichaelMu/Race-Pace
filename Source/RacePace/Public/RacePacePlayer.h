@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "RacepacePlayer.generated.h"
 
-class URacecarUIController;
+class ARacecar;
 
 /**
  * 
@@ -38,6 +38,8 @@ public:
 	FORCEINLINE bool HasLapStarted() const;
 	FORCEINLINE void StartLap(const float StartTime);
 	FORCEINLINE void StopLap(bool bContinuousLap);
+
+	FORCEINLINE ARacecar* GetRacecar() const;
 
 private:
 
