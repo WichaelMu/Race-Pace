@@ -148,7 +148,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	bUseSyntheticABS = true;
 	AntiLockBrakingCurve.GetRichCurve()->AddKey(-80.f, .4f);
 	AntiLockBrakingCurve.GetRichCurve()->AddKey(0.f, .2f);
-	AntiLockBrakingCurve.GetRichCurve()->AddKey(80.f, 1.f);
+	AntiLockBrakingCurve.GetRichCurve()->AddKey(20.f, 1.f);
 
 	MouseMoveSensitivity = 5.f;
 	MouseScrollSensitivity = 15.f;
@@ -185,7 +185,7 @@ void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ARacecar::Throttle(float Throw)
 {
-	if (Throw == 0.f && EngineIdleThrottleInput != 0.f && GetGear(true) != 0 && GetSpeed() == 0)
+	if (Throw == 0.f && EngineIdleThrottleInput != 0.f && GetSpeed() == 0)
 	{
 		Throw = EngineIdleThrottleInput;
 	}
