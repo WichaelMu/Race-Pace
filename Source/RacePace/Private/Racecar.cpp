@@ -322,7 +322,7 @@ int32 ARacecar::GetSpeed(bool bGetAbsolute) const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::White, FString::FromInt(Speed));
-	}
+}
 #endif
 
 	const int32 RoundedSpeed = FMath::RoundToInt(Speed);
@@ -337,7 +337,7 @@ int32 ARacecar::GetRPM() const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::FromInt(RPM));
-	}
+}
 #endif
 
 	return RPM;
@@ -353,7 +353,7 @@ int32 ARacecar::GetGear(bool bGetTargetGearInstead) const
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(0, 0.f, FColor::Blue, FString::FromInt(Gear));
-	}
+}
 #endif
 
 	return Gear;
