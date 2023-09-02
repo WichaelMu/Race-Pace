@@ -2,6 +2,8 @@
 
 
 #include "PersonalisedColours.h"
+#include "UObject/ConstructorHelpers.h"
+
 #include "RDefinitions.h"
 
 #include "Materials/MaterialInterface.h"
@@ -20,6 +22,12 @@ UPersonalisedColours::UPersonalisedColours()
 
 	PersonalisedColours.SetNum(1);
 	ActivatableColours.SetNum(0);
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DefaultParentMaterial(TEXT("/Game/Materials/MI_PersonalisedColours"));
+	if (DefaultParentMaterial.Succeeded())
+	{
+		ParentMaterial = DefaultParentMaterial.Object;
+	}
 }
 
 #if WITH_EDITOR
