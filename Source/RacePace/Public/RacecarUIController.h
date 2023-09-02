@@ -86,11 +86,16 @@ public:
 
 protected:
 
+	UPROPERTY(EditAnywhere, Category = "Linear Gradient Material")
+		UMaterialInstance* LinearGradientMaterial;
+
 	UUserWidget* RacepacePlayerWidget;
 
 private:
 
 	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);
+
+	void SetLinearGradients();
 
 	static float CurveFunction(const float& Ratio, const float& Scalar);
 

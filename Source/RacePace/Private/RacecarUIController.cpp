@@ -3,6 +3,8 @@
 
 #include "RacecarUIController.h"
 
+#include "RDefinitions.h"
+
 #include "RacePacePlayer.h"
 #include "Racecar.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
@@ -10,6 +12,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/CanvasPanelSlot.h"
+
+#include "Materials/MaterialInterface.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values for this component's properties
 URacecarUIController::URacecarUIController()
@@ -19,11 +24,17 @@ URacecarUIController::URacecarUIController()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	static ConstructorHelpers::FClassFinder<UUserWidget> MainWidget(TEXT("/Game/Widgets/UI_PlayerHUD"));
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> MainWidget(TEXT("/Game/Widgets/UI_PlayerHUD"));
 	if (MainWidget.Succeeded())
 	{
 		DashboardHUDWidget = MainWidget.Class;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DefaultLinearGradientMaterial(TEXT("/Game/Widgets/WidgetMaterials/MI_LinearGradient"));
+	if (DefaultLinearGradientMaterial.Succeeded())
+	{
+		LinearGradientMaterial = DefaultLinearGradientMaterial.Object;
 	}
 
 	ShiftUpText = TEXT("SHIFT ^");
@@ -77,6 +88,8 @@ void URacecarUIController::BeginPlay()
 		ShiftIndicator = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("ShiftIndicator")));
 
 		RacepacePlayerWidget->AddToViewport();
+
+		SetLinearGradients();
 	}
 
 	SetGear(Racecar->GetGearString());
@@ -106,6 +119,15 @@ void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, F
 				SetLapTime(World->TimeSince(StartLapTime));
 			}
 		}
+	}
+}
+
+void URacecarUIController::SetLinearGradients()
+{
+	for (UImage* Block : RPMBlocks)
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(LinearGradientMaterial, nullptr);
+		Block->SetBrushFromMaterial(DynamicMaterial);
 	}
 }
 
@@ -245,12 +267,20 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 
 	for (int32 i = 0; i < NumRPMBlocks; ++i)
 	{
-		if (CurveFunction(CurrentToMaxRatio, BlockPerRPMRange * (i + 1)) < RPM)
+		UImage* RPMBlock = RPMBlocks[i];
+
+		if (float Function = CurveFunction(CurrentToMaxRatio, BlockPerRPMRange * (i + 1)) < RPM)
 		{
+			if (UMaterialInstanceDynamic* DynamicMaterial = RPMBlock->GetDynamicMaterial())
+			{
+				const float Transparency = CurrentToMaxRatio >= 1.f ? CurrentToMaxRatio - (1.f - CurrentToMaxRatio) : CurrentToMaxRatio;
+				const float Scalar = 1.f - Transparency;
+				DynamicMaterial->SetScalarParameterValue(FName("Scalar"), Scalar);
+			}
+
 			continue;
 		}
 
-		UImage* RPMBlock = RPMBlocks[i];
 		UCanvasPanelSlot* PanelSlot = Cast<UCanvasPanelSlot>(RPMBlock->Slot);
 
 		RPMBarSize = FVector2D(RPMGraphics, DefaultHeight);
