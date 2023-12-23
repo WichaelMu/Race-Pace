@@ -262,7 +262,6 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 	UImage* DefaultBlock = RPMBlocks[0];
 	UCanvasPanelSlot* DefaultPanelSlot = Cast<UCanvasPanelSlot>(DefaultBlock->Slot);
 	const float DefaultHeight = DefaultPanelSlot->GetSize().Y;
-
 	FVector2D RPMBarSize;
 
 	for (int32 i = 0; i < NumRPMBlocks; ++i)
