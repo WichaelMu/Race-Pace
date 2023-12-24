@@ -25,10 +25,16 @@ URacecarUIController::URacecarUIController()
 
 	// ...
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> MainWidget(TEXT("/Game/Widgets/UI_PlayerHUD"));
-	if (MainWidget.Succeeded())
+	static ConstructorHelpers::FClassFinder<UUserWidget> MainWidgetBlueprint(TEXT("/Game/Widgets/UI_PlayerHUD"));
+	if (MainWidgetBlueprint.Succeeded())
 	{
-		DashboardHUDWidget = MainWidget.Class;
+		DashboardHUDWidget = MainWidgetBlueprint.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> SectorWidgetBlueprint(TEXT("/Game/Widgets/UI_SectorSplit"));
+	if (SectorWidgetBlueprint.Succeeded())
+	{
+		SectorSplitWidget = SectorWidgetBlueprint.Class;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> DefaultLinearGradientMaterial(TEXT("/Game/Widgets/WidgetMaterials/MI_LinearGradient"));
@@ -58,10 +64,12 @@ void URacecarUIController::BeginPlay()
 		}
 	}
 
-	RacepacePlayerWidget = CreateWidget<UUserWidget>(GetWorld(), DashboardHUDWidget);
-	RacepacePlayerWidget->SetOwningPlayer(GetPlayer());
+	ARacepacePlayer* RacepacePlayer = GetPlayer();
 
-	if (UUserWidget* Widget = Cast<UUserWidget>(RacepacePlayerWidget))
+	TimingWidget = CreateWidget<UUserWidget>(GetWorld(), DashboardHUDWidget);
+	TimingWidget->SetOwningPlayer(RacepacePlayer);
+
+	if (UUserWidget* Widget = Cast<UUserWidget>(TimingWidget))
 	{
 		// Lap Time Assignments.
 		TimingText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TimingText")));
@@ -87,9 +95,19 @@ void URacecarUIController::BeginPlay()
 
 		ShiftIndicator = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("ShiftIndicator")));
 
-		RacepacePlayerWidget->AddToViewport();
+		TimingWidget->AddToViewport();
 
 		SetLinearGradients();
+	}
+
+	SectorWidget = CreateWidget<UUserWidget>(GetWorld(), SectorSplitWidget);
+	SectorWidget->SetOwningPlayer(RacepacePlayer);
+
+	if (UUserWidget* Widget = Cast<UUserWidget>(SectorWidget))
+	{
+		SectorTimingText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("SectorSplit")));
+
+		SectorWidget->AddToViewport();
 	}
 
 	SetGear(Racecar->GetGearString());
@@ -111,12 +129,11 @@ void URacecarUIController::TickComponent(float DeltaTime, ELevelTick TickType, F
 		SetRPM(RPM);
 		CalculateRPMGraphics(RPM, DeltaTime);
 
-		float StartLapTime;
-		if (GetPlayer()->HasLapStarted(StartLapTime))
+		if (ARacepacePlayer* RacepacePlayer = GetPlayer())
 		{
 			if (UWorld* World = GetWorld())
 			{
-				SetLapTime(World->TimeSince(StartLapTime));
+				SetLapTime(RacepacePlayer->GetCurrentLapTime());
 			}
 		}
 	}
@@ -129,6 +146,20 @@ void URacecarUIController::SetLinearGradients()
 		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(LinearGradientMaterial, nullptr);
 		Block->SetBrushFromMaterial(DynamicMaterial);
 	}
+}
+
+FString URacecarUIController::GetPrefixFromSplit(const float Split) const
+{
+	if (Split > 0.f)
+	{
+		return FString(TEXT("+"));
+	}
+	else if (Split < 0.f)
+	{
+		return FString(TEXT("-"));
+	}
+
+	return FString(TEXT("="));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +224,43 @@ void URacecarUIController::CompareLapToBestDeltas(const float& LapTime, const fl
 		LapDeltaText->SetColorAndOpacity(bIsBehind
 			? NegativeDeltaColour
 			: PositiveDeltaGreen);
+	}
+}
+
+void URacecarUIController::SetSplitTime(const float InSplit)
+{
+	SetSplitTime(DecoratedLapTime(InSplit));
+}
+
+void URacecarUIController::SetSplitTime(const FString& InSplit)
+{
+	if (SectorTimingText)
+	{
+		SectorTimingText->SetText(FText::FromString(InSplit));
+	}
+}
+
+void URacecarUIController::DisplayDeltaSplitTimes(const float InDeltaSector, const float BestDeltaSector, const float InLapSector, const float BestLapSector)
+{
+	LF("Comparing InDeltaSector %f and BestDeltaSector %f", InDeltaSector, BestDeltaSector);
+	LF("Comparing InLapSector %f and BestLapSector %f", InLapSector, BestLapSector);
+
+	const float DeltaSplit = InDeltaSector - BestDeltaSector;
+	const float LapSplit = InLapSector - BestLapSector;
+	const FString DeltaPrefix = GetPrefixFromSplit(DeltaSplit);
+	const FString LapPrefix = GetPrefixFromSplit(LapSplit);
+	
+	if (SectorTimingText)
+	{
+		const float AbsoluteDeltaSplit = FMath::Abs(DeltaSplit);
+		FString DeltaSplitString = FString::Printf(TEXT("%s%s"), *DeltaPrefix, *DecoratedLapTime(AbsoluteDeltaSplit));
+
+		const float AbsoluteLapSplit = FMath::Abs(LapSplit);
+		FString LapSplitString = FString::Printf(TEXT("%s%s"), *LapPrefix, *DecoratedLapTime(AbsoluteLapSplit));
+
+		FString FinalString = FString::Printf(TEXT("Sector Delta: %s\nLap Delta: %s"), *DeltaSplitString, *LapSplitString);
+		FText FinalText = FText::FromString(FinalString);
+		SectorTimingText->SetText(FinalText);
 	}
 }
 

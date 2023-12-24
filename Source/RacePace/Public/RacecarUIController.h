@@ -53,6 +53,10 @@ public:
 	FORCEINLINE void SetLastLapTime(const float InLastLapTime);
 	void CompareLapToBestDeltas(const float& LapTime, const float& BestTime);
 
+	FORCEINLINE void SetSplitTime(const float InSplit);
+	void SetSplitTime(const FString& InSplit);
+	void DisplayDeltaSplitTimes(const float InDeltaSector, const float BestDeltaSector, const float InLapSector, const float BestLapSector);
+
 	// Dashboard Functions.
 	void SetSpeed(const int32 InKMPH);
 	void SetRPM(const int32 InRPM);
@@ -62,6 +66,7 @@ public:
 
 
 	TSubclassOf<UUserWidget> DashboardHUDWidget;
+	TSubclassOf<UUserWidget> SectorSplitWidget;
 
 	// Lap Time UI Elements.
 	ADD_HUD_ELEMENT(TimingText);
@@ -83,19 +88,25 @@ public:
 	const FSlateColor NegativeDeltaColour = FSlateColor(FLinearColor(FColor(255.f, 68.f, 68.f)));
 	const FSlateColor PositiveDeltaGreen = FSlateColor(FLinearColor(FColor(68.f, 255.f, 68.f)));
 
+	// Sector Split Element.
+	ADD_HUD_ELEMENT(SectorTimingText);
+
 
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Linear Gradient Material")
 		UMaterialInstance* LinearGradientMaterial;
 
-	UUserWidget* RacepacePlayerWidget;
+	UUserWidget* TimingWidget;
+	UUserWidget* SectorWidget;
 
 private:
 
 	void CalculateRPMGraphics(const int32 RPM, const float DeltaTime);
 
 	void SetLinearGradients();
+
+	FORCEINLINE FString GetPrefixFromSplit(const float Split) const;
 
 	static float CurveFunction(const float& Ratio, const float& Scalar);
 
