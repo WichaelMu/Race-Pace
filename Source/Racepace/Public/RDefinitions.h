@@ -35,6 +35,6 @@
 #define CNULL_M(Pointer, Message) if (!Pointer) { EM(Message) return; }
 
 // Returns DefaultValue if Pointer is nullptr.
-#define CNULL_RET_EM(Pointer, Message, DefaultValue) if (!Pointer) { EM(Message) return DefaultValue; }
+#define CNULL_RET_EF(Pointer, Message, DefaultValue) if (!Pointer) { EF(Message) return DefaultValue; }
 // Returns DefaultValue if Pointer is nullptr.
 #define CNULL_RET_M(Pointer, Format, DefaultValue, ...) if (!Pointer) { E(Format, __VA_ARGS__) return DefaultValue; }
