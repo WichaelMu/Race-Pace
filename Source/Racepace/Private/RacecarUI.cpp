@@ -59,11 +59,11 @@ ARacepacePlayer* URacecarUI::GetPlayer()
 
 void URacecarUI::DecoratedLapTime(const float RawLapTime, int32& Minutes, int32& Seconds, int32& Milliseconds) const
 {
-	Seconds = (int)RawLapTime;
+	Seconds = (int32)RawLapTime;
 
 	Milliseconds = (RawLapTime - Seconds) * 1000;
 
-	Minutes = (int)(Seconds / 60);
+	Minutes = (int32)(Seconds / 60);
 
 	Seconds %= 60;
 }
