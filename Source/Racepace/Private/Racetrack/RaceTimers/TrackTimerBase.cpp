@@ -3,6 +3,7 @@
 
 #include "Racetrack/RaceTimers/TrackTimerBase.h"
 #include "Engine/World.h"
+#include "RacepacePlayer.h"
 #include "Racecar.h"
 
 // Sets default values
@@ -29,11 +30,14 @@ void ATrackTimerBase::Tick(float DeltaTime)
 
 IMPLEMENT_ENTER_FUNCTION(ATrackTimerBase)
 {
-	if (const ARacecar* Racecar = CastToRacecar(OtherActor))
+	if (ARacecar* Racecar = CastToRacecar(OtherActor))
 	{
-		if (UWorld* World = GetWorld())
+		if (ARacepacePlayer* RacepacePlayer = Racecar->GetRacepacePlayerController())
 		{
-			EnterTime = World->GetTimeSeconds();
+			if (UWorld* World = GetWorld())
+			{
+				EnterTime = (float)World->GetTimeSeconds();
+			}
 		}
 	}
 }

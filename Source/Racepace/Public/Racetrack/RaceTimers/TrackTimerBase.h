@@ -28,6 +28,8 @@ public:
 
 protected:
 
-	double EnterTime;
+	// The real World-Time since the beginning of the game when this Racecar
+	// entered this RacetrackEvent.
+	float EnterTime;
 
 };
