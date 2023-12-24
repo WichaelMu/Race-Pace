@@ -7,6 +7,7 @@
 #include "Sector.generated.h"
 
 class ARacecar;
+class AStartFinishLine;
 
 /**
  * 
@@ -32,12 +33,15 @@ private:
 
 	void OnRacecarCross(ARacecar* Racecar);
 
+public:
+
+	AStartFinishLine* StartFinishLine;
+
 private:
 
+	// The real World-time of the time a Racecar crossed this Sector.
 	TMap<ARacecar*, float> CrossOrder;
-
+	
 	UPROPERTY(VisibleAnywhere)
 		bool bHasBeenCrossed;
-	
-	float CrossTime;
 };

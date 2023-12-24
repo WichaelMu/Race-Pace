@@ -7,9 +7,10 @@
 #include "RacepacePlayer.generated.h"
 
 class ARacecar;
+class ASector;
 
 /**
- * 
+ *
  */
 UCLASS()
 class RACEPACE_API ARacepacePlayer : public APlayerController
@@ -30,6 +31,7 @@ public:
 
 	void AddLapTime(const float NewLapTime);
 	FORCEINLINE TArray<float> GetLapTimes() const;
+	float GetAccumulatedLapTimes() const;
 	float GetBestLapTime() const;
 	float GetLastLapTime() const;
 	void ClearLapTimes();
@@ -41,10 +43,25 @@ public:
 
 	FORCEINLINE ARacecar* GetRacecar() const;
 
+	FORCEINLINE bool IsBestLapTime(const float InLapTime) const;
+	void SetBestTimes();
+	FORCEINLINE void GetBestSplitTimes(const int32 Sector, float& BestDeltaSector, float& BestLapCrossSector);
+
+	float GetCurrentLapTime() const;
+
+public:
+
+	int32 CurrentSector;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Lap Records")
 		TArray<float> LapTimes;
+
+	// Best times between Sectors.
+	TArray<float> BestDeltaSectors;
+	// Best lap interval between Sectors.
+	TArray<float> BestLapSectors;
 
 	float LapStartTime;
 	bool bLapHasStarted;

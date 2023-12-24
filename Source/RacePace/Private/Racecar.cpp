@@ -13,8 +13,8 @@
 #include "VehicleAnimationInstance.h"
 
 #include "RacepacePlayer.h"
-#include "Dashboard.h"
 #include "RacecarUIController.h"
+#include "RacecarTimingComponent.h"
 
 #include "PersonalisedColours.h"
 
@@ -123,7 +123,7 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	Engine->EngineSetup.MaxTorque = 250.f;
 
 	Engine->EngineSetup.EngineIdleRPM = 2300.f;
-	Engine->EngineSetup.EngineBrakeEffect = .68f;
+	Engine->EngineSetup.EngineBrakeEffect = .38f;
 	Engine->EngineSetup.EngineRevUpMOI = 5.f;
 	Engine->EngineSetup.EngineRevDownRate = 150.f;
 
@@ -155,13 +155,15 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	EngineIdleThrottleInput = .05f;
 
 	RacecarUIController = CreateDefaultSubobject<URacecarUIController>(TEXT("Racecar UI Controller"));
-	Dashboard = CreateDefaultSubobject<UDashboard>(TEXT("Dashboard HUD Component"));
+	TimingComponent = CreateDefaultSubobject<URacecarTimingComponent>(TEXT("Racecar Timing Component"));
 
-	RacecarUIController->Racecar = Dashboard->Racecar = this;
+	RacecarUIController->Racecar = TimingComponent->Racecar = this;
 
 	PersonalisedColours = CreateDefaultSubobject<UPersonalisedColours>(TEXT("Personalised Colours"));
 
 	bIsElectric = false;
+
+	RacepacePlayer = nullptr;
 }
 
 void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

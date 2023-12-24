@@ -3,6 +3,11 @@
 
 #include "Racetrack/RaceTimers/Sector.h"
 #include "Racetrack/Racetrack.h"
+#include "Racetrack/RaceTimers/StartFinishLine.h"
+#include "RDefinitions.h"
+#include "RacepacePlayer.h"
+#include "RacecarUIController.h"
+#include "RacecarTimingComponent.h"
 #include "Racecar.h"
 
 ASector::ASector()
@@ -23,13 +28,54 @@ IMPLEMENT_ENTER_FUNCTION(ASector)
 
 void ASector::OnRacecarCross(ARacecar* Racecar)
 {
+	ARacepacePlayer* RacepacePlayer = Racecar->GetRacepacePlayerController();
+	if (!RacepacePlayer)
+	{
+		E("ASector::OnRacecarCross: Racecar has no ARacepacePlayer*!");
+		return;
+	}
+
+	float CurrentLapTime = RacepacePlayer->GetCurrentLapTime();
+
 	if (!CrossOrder.Contains(Racecar))
 	{
-		CrossOrder.Add(Racecar, EnterTime);
+		CrossOrder.Add(Racecar, CurrentLapTime);
+		URacecarTimingComponent* TimingComponent = Racecar->TimingComponent;
+		CNULLF(TimingComponent, "%s has no Timing Component", *Racecar->GetName());
+
+		if (StartFinishLine)
+		{
+			if (URacecarUIController* UI = Racecar->RacecarUIController)
+			{
+				if (RacepacePlayer->GetLapTimes().Num() == 0)
+				{
+					UI->SetSplitTime(RacepacePlayer->GetCurrentLapTime());
+				}
+				else if (RacepacePlayer->HasLapStarted())
+				{
+					const int32 CurrentSector = RacepacePlayer->CurrentSector;
+
+					float BestDeltaSector, BestLapSector;
+					RacepacePlayer->GetBestSplitTimes(CurrentSector, BestDeltaSector, BestLapSector);
+
+					UI->DisplayDeltaSplitTimes(
+						TimingComponent->GetLastSectorDeltaTime(), BestDeltaSector,
+						RacepacePlayer->GetCurrentLapTime(), BestLapSector
+					);
+				}
+			}
+		}
+
+		++RacepacePlayer->CurrentSector;
+		TimingComponent->RegisterDeltaTime(RacepacePlayer);
+		TimingComponent->RegisterLapCrossTime(RacepacePlayer);
+		TimingComponent->StartTimingSector(EnterTime);
 	}
 	else
 	{
-		CrossOrder[Racecar] = EnterTime;
+		// Only called when the same Racecar enters this Sector multiple times in one lap...
+
+		CrossOrder[Racecar] = RacepacePlayer->GetCurrentLapTime();
 	}
 }
 

@@ -12,7 +12,7 @@ class USceneComponent;
 
 class ARacepacePlayer;
 class URacecarUIController;
-class UDashboard;
+class URacecarTimingComponent;
 
 class UPersonalisedColours;
 
@@ -35,10 +35,10 @@ public:
 
 public:
 
-	UDashboard* Dashboard;
-
 	UPROPERTY(EditAnywhere, Category = UI)
 		URacecarUIController* RacecarUIController;
+	UPROPERTY(VisibleAnywhere, Category = Timing)
+		URacecarTimingComponent* TimingComponent;
 
 public:
 
