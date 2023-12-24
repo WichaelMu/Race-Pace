@@ -24,12 +24,16 @@ public:
 	// Sets default values for this actor's properties
 	AStartFinishLine();
 
+	virtual void BeginPlay() override;
+
 
 public:
 
 	OVERRIDE_ENTER_FUNCTION()
 
 	void OnRacecarCross(ARacecar* Racecar);
+	FORCEINLINE float GetLapStartTime() const;
+	FORCEINLINE float GetSectorTime(const ARacecar* Racecar, const int32 Sector) const;
 
 
 private:
@@ -38,7 +42,7 @@ private:
 	void SetLapUI(ARacecar* Racecar, ARacepacePlayer* Player, float LapTime);
 
 	bool WasLapValid(const ARacecar* Racecar) const;
-	void ClearSectors(const ARacecar* Racecar);
+	void OnLapEnd(ARacecar* Racecar);
 
 private:
 

@@ -5,6 +5,7 @@
 #include "Racetrack/RaceTimers/Sector.h"
 #include "Racetrack/Racetrack.h"
 #include "RacepacePlayer.h"
+#include "RacecarTimingComponent.h"
 #include "Racecar.h"
 #include "RacecarUIController.h"
 #include "RDefinitions.h"
@@ -15,6 +16,18 @@ AStartFinishLine::AStartFinishLine()
 	PrimaryActorTick.bCanEverTick = false;
 
 	bAllowContinuousLaps = true;
+}
+
+void AStartFinishLine::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ...
+
+	for (int32 i = 0; i < Sectors.Num(); ++i)
+	{
+		Sectors[i]->StartFinishLine = this;
+	}
 }
 
 IMPLEMENT_ENTER_FUNCTION(AStartFinishLine)
@@ -32,9 +45,14 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 {
 	ARacepacePlayer* Player = Racecar->GetRacepacePlayerController();
 	CNULLF(Player, "%s has no valid ARacepacePlayer", *Racecar->GetName());
+	CNULLF(Racecar->TimingComponent, "%s has no valid URacecarTimingComponent", *Racecar->GetName());
 
 	bool bHasPreviouslyCrossed = Grid.Contains(Racecar);
 	bool bWasLapValid = WasLapValid(Racecar);
+
+	const float LapTime = GetLapTime();
+
+	Racecar->TimingComponent->StartTimingSector(EnterTime);
 
 	if (bAllowContinuousLaps)
 	{
@@ -42,7 +60,7 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 		if (bHasPreviouslyCrossed && bWasLapValid)
 		{
 			Player->StopLap(true);
-			SetLapUI(Racecar, Player, GetLapTime());
+			SetLapUI(Racecar, Player, LapTime);
 		}
 		else
 		{
@@ -63,7 +81,7 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 			if (bWasLapValid)
 			{
 				Player->StopLap(false);
-				SetLapUI(Racecar, Player, GetLapTime());
+				SetLapUI(Racecar, Player, LapTime);
 
 				Grid.Remove(Racecar);
 			}
@@ -77,8 +95,29 @@ void AStartFinishLine::OnRacecarCross(ARacecar* Racecar)
 		}
 	}
 
+	if (bWasLapValid && Player->IsBestLapTime(LapTime))
+	{
+		Player->SetBestTimes();
+		L("Best Sectors Set");
+	}
+
 	// Times are cleared regardless of their validity.
-	ClearSectors(Racecar);
+	OnLapEnd(Racecar);
+}
+
+float AStartFinishLine::GetLapStartTime() const
+{
+	return StartTime;
+}
+
+float AStartFinishLine::GetSectorTime(const ARacecar* Racecar, const int32 Sector) const
+{
+	if (Sectors.IsValidIndex(Sector))
+	{
+		return Sectors[Sector]->GetCrossTime(Racecar);
+	}
+
+	return 0.0f;
 }
 
 float AStartFinishLine::GetLapTime() const
@@ -144,10 +183,21 @@ bool AStartFinishLine::WasLapValid(const ARacecar* Racecar) const
 	return Sectors.Last()->HasCrossed(Racecar);
 }
 
-void AStartFinishLine::ClearSectors(const ARacecar* Racecar)
+void AStartFinishLine::OnLapEnd(ARacecar* Racecar)
 {
 	for (int32 i = 0; i < Sectors.Num(); ++i)
 	{
 		Sectors[i]->ClearTimes(Racecar);
+	}
+
+	if (ARacepacePlayer* RacepacePlayer = Racecar->GetRacepacePlayerController())
+	{
+		RacepacePlayer->CurrentSector = 0;
+	}
+
+	if (URacecarTimingComponent* TimingComponent = Racecar->TimingComponent)
+	{
+		TimingComponent->LapCrossTimes.Empty();
+		TimingComponent->DeltaTimes.Empty();
 	}
 }
