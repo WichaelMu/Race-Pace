@@ -338,12 +338,15 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 
 		if (float Function = CurveFunction(CurrentToMaxRatio, BlockPerRPMRange * (i + 1)) < RPM)
 		{
+#if WITH_TRANSPARANCY
 			if (UMaterialInstanceDynamic* DynamicMaterial = RPMBlock->GetDynamicMaterial())
 			{
+				float Scalar = 1.f;
 				const float Transparency = CurrentToMaxRatio >= 1.f ? CurrentToMaxRatio - (1.f - CurrentToMaxRatio) : CurrentToMaxRatio;
-				const float Scalar = 1.f - Transparency;
+				Scalar = 1.f - Transparency;
 				DynamicMaterial->SetScalarParameterValue(FName("Scalar"), Scalar);
 			}
+#endif
 
 			continue;
 		}
@@ -360,6 +363,7 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 
 	if (RPM <= RacecarMaxRPM)
 	{
+#if WITH_INTERP
 		FVector2D RPMInterp = FMath::Vector2DInterpTo(RPMCurrentSlot->GetPosition(), RPMToGraphicPosition, DeltaTime, 7.f);
 		FVector2D RPMTextInterp;
 		RPMTextInterp.X = RPMInterp.X;
@@ -367,6 +371,11 @@ void URacecarUIController::CalculateRPMGraphics(const int32 RPM, const float Del
 
 		RPMTextSlot->SetPosition(RPMTextInterp);
 		RPMCurrentSlot->SetPosition(RPMInterp);
+#else
+		float TextY = RPMTextSlot->GetPosition().Y;
+		RPMTextSlot->SetPosition(FVector2D(RPMToGraphicPosition.X, TextY));
+		RPMCurrentSlot->SetPosition(RPMToGraphicPosition);
+#endif
 	}
 }
 

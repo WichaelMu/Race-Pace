@@ -3,6 +3,7 @@
 
 #include "Racecar.h"
 
+#include "UObject/UObjectGlobals.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include "GameFramework/SpringArmComponent.h"
@@ -17,6 +18,9 @@
 #include "RacecarTimingComponent.h"
 
 #include "PersonalisedColours.h"
+
+#include "Components/AudioComponent.h"
+#include "SyntheticSound.h"
 
 #include "RDefinitions.h"
 
@@ -164,6 +168,56 @@ ARacecar::ARacecar(const FObjectInitializer& ObjectInitializer)
 	bIsElectric = false;
 
 	RacepacePlayer = nullptr;
+
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Synthetic Engine Audio Component"));
+}
+
+void ARacecar::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ...
+
+	SyntheticSound = NewObject<USyntheticSound>();
+	CNULLF(SyntheticSound, "SYNTHETICSOUNDISNULL")
+	SyntheticSound->SetEngineType(EEngineType::ICEV10High, true);
+	AudioComponent->SetSound(SyntheticSound);
+	AudioComponent->Play();
+	if (USoundBase* B = AudioComponent->GetSound())
+	{
+		L("GOOD")
+	}
+	if (bool bIsPlaying = AudioComponent->IsPlaying())
+	{
+		L("YES")
+	}
+}
+
+void ARacecar::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// ...
+
+	if (SyntheticSound)
+	{
+		SyntheticSound->SetRPM(GetRPM());
+		SyntheticSound->SetThrottle(1.f);
+	}
+	else
+	{
+		E("SYNTH FAIL")
+	}
+
+	if (AudioComponent)
+	{
+		AudioComponent->SetSound(SyntheticSound);
+		AudioComponent->Play();
+	}
+	else
+	{
+		E("AUDIO FAIL")
+	}
 }
 
 void ARacecar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

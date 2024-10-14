@@ -22,6 +22,10 @@ class ARacecar;
 class UCanvasPanelSlot;
 
 
+#define WITH_TRANSPARANCY 0
+#define WITH_INTERP 0
+
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class RACEPACE_API URacecarUIController : public URacecarUI
 {

@@ -16,6 +16,8 @@ class URacecarTimingComponent;
 
 class UPersonalisedColours;
 
+class USyntheticSound;
+
 #define CHAOS_VEHICLE(Racecar) Cast<UChaosWheeledVehicleMovementComponent>((Racecar)->GetVehicleMovement())
 
 /**
@@ -29,6 +31,9 @@ class RACEPACE_API ARacecar : public AWheeledVehiclePawn
 public:
 
 	ARacecar(const FObjectInitializer& ObjectInitializer);
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
@@ -55,6 +60,14 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		bool bIsElectric;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Setup)
+		UCameraComponent* Camera;
+
+	UPROPERTY(EditDefaultsOnly)
+		USyntheticSound* SyntheticSound;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+		UAudioComponent* AudioComponent;
+
 private:
 
 	UFUNCTION(BlueprintCallable)
@@ -79,8 +92,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		USpringArmComponent* SpringArm;
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
-		UCameraComponent* Camera;
 
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 		USceneComponent* Gimbal;
@@ -102,6 +113,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 		FRuntimeFloatCurve AntiLockBrakingCurve;
+
 
 	ARacepacePlayer* RacepacePlayer;
 };
